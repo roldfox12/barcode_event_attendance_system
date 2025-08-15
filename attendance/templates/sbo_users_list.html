@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>SBO Officers</h2>
+<table style="width:100%; border-collapse:collapse; background:#fff;">
+    <thead>
+        <tr style="background:#ffe3f0;">
+            <th style="padding:8px; border:1px solid #e6007a;">Username</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in sbo_users %}
+        <tr>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ user.username }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">
+                <a href="{% url 'edit_sbo_user' user.id %}">
+                    <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 14px; border-radius:4px; cursor:pointer;">Edit</button>
+                </a>
+                <form method="post" action="{% url 'delete_sbo_user' user.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 14px; border-radius:4px; cursor:pointer;"
+                        onclick="return confirm('Are you sure you want to delete this SBO user?');">
+                        Delete
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2" style="padding:8px; border:1px solid #e6007a;">No SBO users found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'dashboard' %}">
+    <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer; margin-top:20px;">
+        Back to Dashboard
+    </button>
+</a>
+{% endblock %}

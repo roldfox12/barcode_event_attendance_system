@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 def login_view(request):
     if request.method == 'POST':
@@ -172,3 +174,54 @@ def events_list(request):
         events = Event.objects.all()
     return render(request, 'events_list.html', {'events': events})
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def sbo_users_list(request):
+    sbo_users = User.objects.filter(is_superuser=False, is_staff=False)
+    return render(request, 'sbo_users_list.html', {'sbo_users': sbo_users})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def add_sbo_user(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        User = get_user_model()
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+        else:
+            user = User.objects.create_user(username=username, password=password)
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
+            messages.success(request, "SBO user added successfully.")
+    return redirect('sbo_users_list')
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_sbo_user(request, user_id):
+    User = get_user_model()
+    user = User.objects.get(id=user_id, is_superuser=False, is_staff=False)
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        if username and username != user.username:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "Username already exists.")
+                return redirect('edit_sbo_user', user_id=user.id)
+            user.username = username
+        if password:
+            user.set_password(password)
+        user.save()
+        messages.success(request, "SBO user updated successfully.")
+        return redirect('sbo_users_list')
+    return render(request, 'edit_sbo_user.html', {'edit_user': user})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_sbo_user(request, user_id):
+    User = get_user_model()
+    user = User.objects.get(id=user_id, is_superuser=False, is_staff=False)
+    user.delete()
+    messages.success(request, "SBO user deleted successfully.")
+    return redirect('sbo_users_list')

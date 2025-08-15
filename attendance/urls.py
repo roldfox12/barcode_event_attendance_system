@@ -15,4 +15,9 @@ urlpatterns = [
     path('attendance_sheet/<int:event_id>/', views.attendance_sheet, name='attendance_sheet'),
     path('students/', views.students_list, name='students_list'),
     path('events/', views.events_list, name='events_list'),
+    # SBO Officers management
+    path('sbo_users/', views.sbo_users_list, name='sbo_users_list'),
+    path('add_sbo_user/', views.add_sbo_user, name='add_sbo_user'),
+    path('edit_sbo_user/<int:user_id>/', views.edit_sbo_user, name='edit_sbo_user'),
+    path('delete_sbo_user/<int:user_id>/', views.delete_sbo_user, name='delete_sbo_user'),
 ]
