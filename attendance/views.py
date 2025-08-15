@@ -1,0 +1,174 @@
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .models import Event, Attendee, Attendance
+from django.utils import timezone
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import IntegrityError
+from django.db.models import Q
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            if username == 'sbo_admin':
+                return redirect('dashboard')
+            else:
+                return redirect('index')
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, 'login.html')
+
+@login_required
+@user_passes_test(lambda u: u.username == 'sbo_admin')
+def dashboard(request):
+    events = Event.objects.all() # Gets all events from the database
+    students = Attendee.objects.all() # Gets all students from the database
+    return render(request, 'dashboard.html', {'events': events, 'students': students})
+
+@login_required
+def index(request):
+    events = Event.objects.all()
+    return render(request, 'index.html', {'events': events})
+
+@login_required
+@user_passes_test(lambda u: u.username == 'sbo_admin')
+def add_event(request):
+    if request.method == 'POST':
+        name = request.POST.get('event_name')
+        date = request.POST.get('event_date')
+        Event.objects.create(name=name, date=date)
+        messages.success(request, "Event added successfully!")
+    return redirect('dashboard')
+
+@login_required
+@user_passes_test(lambda u: u.username == 'sbo_admin')
+def delete_event(request, event_id):
+    Event.objects.filter(id=event_id).delete()
+    messages.success(request, "Event deleted successfully!")
+    return redirect('events_list')
+
+@login_required
+@user_passes_test(lambda u: u.username == 'sbo_admin')
+def add_student(request):
+    if request.method == 'POST':
+        barcode_id = request.POST.get('barcode_id')
+        name = request.POST.get('student_name')
+        if Attendee.objects.filter(barcode_id=barcode_id, name=name):
+            messages.error(request, "That student is already registered.")
+        else:
+            try:
+                Attendee.objects.create(barcode_id=barcode_id, name=name)
+                messages.success(request, "Student added successfully!")
+            except IntegrityError:
+                messages.error(request, "That student is already registered.")
+    return redirect('dashboard')
+
+@login_required
+@user_passes_test(lambda u: u.username == 'sbo_admin')
+def delete_student(request, student_id):
+    Attendee.objects.filter(id=student_id).delete()
+    messages.success(request, "Student deleted successfully!")
+    return redirect('students_list')
+
+@login_required
+def sign_in_manual(request):
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        name = request.POST.get('name')
+        event = Event.objects.get(id=event_id)
+        attendee, created = Attendee.objects.get_or_create(
+            barcode_id=name,
+            defaults={'name': name}
+        )
+        attendance, created = Attendance.objects.get_or_create(
+            attendee=attendee,
+            event=event,
+            defaults={'sign_in_time': timezone.now()}
+        )
+        if not created and not attendance.sign_in_time:
+            attendance.sign_in_time = timezone.now()
+            attendance.save()
+        messages.success(request, f"{attendee.name} signed in successfully!")
+        return redirect('index')
+    return redirect('index')
+
+@login_required
+def sign_out_manual(request):
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        name = request.POST.get('name')
+        event = Event.objects.get(id=event_id)
+        try:
+            attendee = Attendee.objects.get(name=name)
+            attendance = Attendance.objects.get(attendee=attendee, event=event)
+            if not attendance.sign_out_time:
+                attendance.sign_out_time = timezone.now()
+                attendance.save()
+                messages.success(request, f"{attendee.name} signed out successfully!")
+            else:
+                messages.error(request, f"{attendee.name} already signed out!")
+        except (Attendee.DoesNotExist, Attendance.DoesNotExist):
+            messages.error(request, "Attendee or attendance record not found!")
+        return redirect('index')
+    return redirect('index')
+
+@login_required
+def scan_barcode(request):
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        barcode_id = request.POST.get('barcode_id')
+        action = request.POST.get('action')
+        event = Event.objects.get(id=event_id)
+        try:
+            attendee = Attendee.objects.get(barcode_id=barcode_id)
+            attendance, created = Attendance.objects.get_or_create(
+                attendee=attendee,
+                event=event,
+                defaults={'sign_in_time': timezone.now() if action == 'sign_in' else None}
+            )
+            if action == 'sign_in' and not attendance.sign_in_time:
+                attendance.sign_in_time = timezone.now()
+                attendance.save()
+                messages.success(request, f"{attendee.name} signed in successfully!")
+            elif action == 'sign_out' and not attendance.sign_out_time:
+                attendance.sign_out_time = timezone.now()
+                attendance.save()
+                messages.success(request, f"{attendee.name} signed out successfully!")
+            else:
+                messages.error(request, f"{attendee.name} already processed for this action!")
+        except Attendee.DoesNotExist:
+            messages.error(request, "Attendee not found!")
+        return redirect('index')
+    return redirect('index')
+
+@login_required
+def attendance_sheet(request, event_id):
+    event = Event.objects.get(id=event_id)
+    attendances = Attendance.objects.filter(event=event)
+    return render(request, 'attendance_sheet.html', {'event': event, 'attendances': attendances})
+
+@login_required
+def students_list(request):
+    query = request.GET.get('q', '')
+    if query:
+        students = Attendee.objects.filter(
+            Q(barcode_id__icontains=query) | Q(name__icontains=query)
+        )
+    else:
+        students = Attendee.objects.all()
+    return render(request, 'students_list.html', {'students': students})
+
+@login_required
+def events_list(request):
+    query = request.GET.get('q', '')
+    if query:
+        events = Event.objects.filter(name__icontains=query)
+    else:
+        events = Event.objects.all()
+    return render(request, 'events_list.html', {'events': events})
+

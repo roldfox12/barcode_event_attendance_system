@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="attendance-sheet">
+    <h1>{{ event.name}} Attendance</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sign-In Time</th>
+                <th>Sign-Out Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attendance in attendances %}
+                <tr>
+                    <td>{{ attendance.attendee.name}}</td>
+                    <td>{{ attendance.sign_in_time|date:"h:i A"}}</td>
+                    <td>{{ attendance.sign_out_time|date:"h:i A}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="window.print()">Print attendance sheet</button>
+    <a href="{% url'dashboard' %}"> Back to Dashboard</a>
+</div>
+{% endblock %}

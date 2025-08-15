@@ -1,0 +1,129 @@
+body {
+    font-family: 'Inter', Arial, Helvetica, sans-serif !important;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', Arial, Helvetica, sans-serif !important;
+    font-weight: 600;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;      /* Vertically center */
+}
+
+.container > form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding:20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 320px;
+}
+
+.main-page, .dashboard, .attendance-sheet, .container > form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #c71585; /* Medium violet red */
+}
+
+.section {
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: #c71585;
+    margin-bottom: 5px;
+}
+
+input, select, button {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ffb6c1; /* Light pink border */
+    border-radius: 4px;
+}
+
+button {
+    background-color: #ff69b4; /* Hot pink */
+    color: white;
+    display:block;
+    margin: 20px auto;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #db7093; /* Pale violet red */
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.alert.success {
+    background-color: #98fb98; /* Pale green for success */
+    color: #006400; /* Dark green */
+}
+
+.alert.error {
+    background-color: #ffb6c1; /* Light pink for error */
+    color: #8b0000; /* Dark red */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ffb6c1;
+    text-align: left;
+}
+
+th {
+    background-color: #fff0f5; /* Lavender blush */
+}
+
+a {
+    color: #ff69b4;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #db7093;
+}
+
+@media print {
+    .container {
+        max-width: 100%;
+    }
+    a, button {
+        display: none;
+    }
+    .attendance-sheet {
+        box-shadow: none;
+    }
+}

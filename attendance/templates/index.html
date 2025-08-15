@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-page">
+    <!-- Logout button at the top right -->
+    <div style="text-align: right; margin-bottom: 10px;text-align: center;">
+        <h1>Event Attendance System</h1>
+        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+    <div class="section">
+        <h2>Manual Sign-in/Sign-out</h2>
+        <form method="post" action="{% url 'sign_in_manual' %}">
+            {% csrf_token %}
+            <select name="event_id" required>
+                <option value="">Select Event</option>
+                {% for event in events %}
+                    <option value="{{ event.id }}"> {{ event.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="name" placeholder="Enter Name" required>
+            <button type="submit">Sign In</button>
+        </form>
+        <form method="post" action="{% url 'sign_out_manual' %}">
+            {% csrf_token %}
+            <select name="event_id" required>
+                <option value="">Select Event</option>
+                {% for event in events %}
+                    <option value="{{ event.id }}"> {{ event.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="name" placeholder="Enter Name" required>
+            <button type="submit">Sign Out</button>
+        </form>
+    </div>
+</div>
+
+<!-- Barcode Scanner Section -->
+<div style="
+    max-width: 600px;
+    margin: 40px auto 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px 50px; /* Added more left and right padding */
+    text-align: center;
+">
+    <h2 style="color:#e6007a; margin-top:0;">Barcode Scanner</h2>
+    <form method="post" action="{% url 'scan_barcode' %}" style="display:flex; gap:12px; align-items:center; justify-content:center; margin-top:24px;">
+        {% csrf_token %}
+        <select name="event_id" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <option value="">Select Event</option>
+            {% for event in events %}
+                <option value="{{ event.id }}">{{ event.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="barcode_id" placeholder="Scan Barcode" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+        <select name="action" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <option value="sign_in">Sign In</option>
+            <option value="sign_out">Sign Out</option>
+        </select>
+        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Submit</button>
+    </form>
+</div>
+{% endblock %}
