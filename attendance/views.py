@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+import datetime
 
 def login_view(request):
     if request.method == 'POST':
@@ -225,3 +226,49 @@ def delete_sbo_user(request, user_id):
     user.delete()
     messages.success(request, "SBO user deleted successfully.")
     return redirect('sbo_users_list')
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_student(request, student_id):
+    student = Attendee.objects.get(id=student_id)
+    if request.method == 'POST':
+        student.barcode_id = request.POST.get('barcode_id')
+        student.name = request.POST.get('student_name')
+        student.save()
+        messages.success(request, "Student updated successfully.")
+        return redirect('students_list')
+    return render(request, 'edit_student.html', {'student': student})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+    if request.method == 'POST':
+        event.name = request.POST.get('name')
+        event.date = request.POST.get('date')
+        event.save()
+        messages.success(request, "Event updated successfully.")
+        return redirect('events_list')
+    return render(request, 'edit_event.html', {'event': event})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+    if request.method == 'POST':
+        event.name = request.POST.get('name')
+        event_date_str = request.POST.get('date')
+        if event_date_str:
+            event.date = datetime.datetime.strptime(event_date_str, "%Y-%m-%dT%H:%M")
+        event.save()
+        messages.success(request, "Event updated successfully.")
+        return redirect('events_list')
+    return render(request, 'edit_event.html', {'event': event})
+
+def manual_sign(request):
+    # Your logic here
+    if request.method == 'POST':
+        # handle sign in/out
+        pass
+    return redirect('attendance_home')

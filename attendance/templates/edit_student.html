@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Edit Student</h2>
+<form method="post" style="max-width:400px; margin:auto;">
+    {% csrf_token %}
+    <div style="margin-bottom:16px;">
+        <label for="barcode_id" style="display:block; margin-bottom:6px;">ID Number</label>
+        <input type="text" id="barcode_id" name="barcode_id" value="{{ student.barcode_id }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+    </div>
+    <div style="margin-bottom:16px;">
+        <label for="student_name" style="display:block; margin-bottom:6px;">Student Name</label>
+        <input type="text" id="student_name" name="student_name" value="{{ student.name }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+    </div>
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Save Changes</button>
+        <a href="{% url 'students_list' %}">
+            <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer;">Cancel</button>
+        </a>
+    </div>
+</form>
+{% endblock %}

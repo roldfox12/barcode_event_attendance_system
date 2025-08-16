@@ -11,18 +11,20 @@
     <tbody>
         {% for user in sbo_users %}
         <tr>
-            <td style="padding:8px; border:1px solid #e6007a;">{{ user.username }}</td>
-            <td style="padding:8px; border:1px solid #e6007a;">
-                <a href="{% url 'edit_sbo_user' user.id %}">
-                    <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 14px; border-radius:4px; cursor:pointer;">Edit</button>
-                </a>
-                <form method="post" action="{% url 'delete_sbo_user' user.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 14px; border-radius:4px; cursor:pointer;"
-                        onclick="return confirm('Are you sure you want to delete this SBO user?');">
-                        Delete
-                    </button>
-                </form>
+            <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">{{ user.username }}</td>
+            <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">
+                <div style="display: flex; gap: 10px; align-items: center; height: 100%;">
+                    <a href="{% url 'edit_sbo_user' user.id %}" style="display: flex; align-items: center;">
+                        <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 18px; border-radius:4px; cursor:pointer; margin:0;">Edit</button>
+                    </a>
+                    <form method="post" action="{% url 'delete_sbo_user' user.id %}" style="display:flex; align-items: center; margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:6px 18px; border-radius:4px; cursor:pointer; margin:0;"
+                            onclick="return confirm('Are you sure you want to delete this SBO user?');">
+                            Delete
+                        </button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% empty %}
