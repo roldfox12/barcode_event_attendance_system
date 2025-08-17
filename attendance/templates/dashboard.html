@@ -3,22 +3,34 @@
 {% block content %}
 <div class="dashboard" style="max-width:600px; margin:40px auto; background:#fff; padding:32px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-    <!-- Header with Attendance Sheet and Logout Button -->
+    <!-- Header with Attendance Sheet Dropdown and Logout Button -->
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <h1 style="margin:0;">Admin Dashboard</h1>
         <div style="display: flex; gap: 12px;">
-            <a href="{% url 'attendance_sheet' %}">
-                <button type="button" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">
-                    Go to Attendance Signing Sheet
-                </button>
-            </a>
+            <!-- Dropdown for event sheets -->
+            <form id="eventSheetForm" style="display:flex; gap:8px; align-items:center; margin:0;">
+                <select id="eventSheetSelect" required style="padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
+                    <option value="">Select Event Sheet</option>
+                    {% for event in events %}
+                        <option value="{{ event.id }}">{{ event.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" onclick="goToEventSheet()" style="background:#e6007a; color:#fff; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:15px;">Go</button>
+            </form>
             <form action="{% url 'logout' %}" method="post" style="margin:0;">
                 {% csrf_token %}
                 <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">Logout</button>
             </form>
         </div>
     </div>
-
+    <script>
+        function goToEventSheet() {
+            var eventId = document.getElementById('eventSheetSelect').value;
+            if(eventId) {
+                window.location.href = "{% url 'attendance_sheet' 0 %}".replace('/0/', '/' + eventId + '/');
+            }
+        }
+    </script>
     <!-- Navigation buttons -->
     <div style="margin: 20px 0 12px 0; display: flex; gap: 10px;">
         <a href="{% url 'students_list' %}">
@@ -38,6 +50,7 @@
     <h2 style="margin-bottom:10px;">Add SBO User</h2>
     <form method="post" action="{% url 'add_sbo_user' %}" style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
         {% csrf_token %}
+        
         <input type="text" name="username" placeholder="Username" required
                style="flex:1; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
         <input type="password" name="password" placeholder="Password" required
@@ -48,7 +61,7 @@
     <hr style="margin:18px 0;">
 
     <!-- Events Section -->
-    <h2 style="margin-bottom:10px;">Events</h2>
+    <h2 style="margin-bottom:10px;">Add Events</h2>
     <form method="post" action="{% url 'add_event' %}" style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
         {% csrf_token %}
         <input type="text" name="event_name" placeholder="Event Name" required
@@ -61,7 +74,7 @@
     <hr style="margin:18px 0;">
 
     <!-- Students Section -->
-    <h2 style="margin-bottom:10px;">Students</h2>
+    <h2 style="margin-bottom:10px;">Add Students</h2>
     <form method="post" action="{% url 'add_student' %}" style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
         {% csrf_token %}
         <input type="number" name="barcode_id" placeholder="ID Number" required
@@ -70,5 +83,20 @@
                style="flex:1; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
         <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:15px;">Add Student</button>
     </form>
-</div>
+
+    
+    <!-- Add College (aligned with other forms) -->
+       
+    
+    <h2 style="color:#e6007a; margin-top:32px;">Add College</h2>
+    <form method="post" style="display:flex; gap:12px; align-items:center; margin-bottom:24px;">
+        {% csrf_token %}
+        <input type="text" name="name" id="name" required placeholder="College Name"
+            style="padding:10px; border-radius:6px; border:1.5px solid #e6007a; flex:1; font-size:16px;">
+        <button type="submit"
+            style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-size:16px; font-weight:600; cursor:pointer;">
+            Add College
+        </button>
+    </form>
+
 {% endblock %}

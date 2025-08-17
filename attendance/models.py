@@ -24,3 +24,9 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.attendee.name} - {self.event.name}"
 
+class College(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+

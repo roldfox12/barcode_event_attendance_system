@@ -1,66 +1,127 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="main-page">
-    <!-- Logout button at the top right -->
-        <!-- Example header section for index.html or your main template -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h1 style="margin: 0; flex: 1; text-align: left;">Event Attendance</h1>
-        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+<div class="main-page" style="display: flex; flex-direction: column; align-items: center; min-height: 100vh;">
+    <!-- Card Container -->
+    <div style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 40px 40px 32px 40px; max-width: 1100px; width: 100%; margin-top: 60px; position: relative;">
+        <!-- Logout button at the top right -->
+        <form action="{% url 'logout' %}" method="post" style="position: absolute; top: 32px; right: 40px; margin: 0;">
             {% csrf_token %}
             <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:16px;">
                 Logout
             </button>
         </form>
+        <h1 style="margin: 0 0 32px 0; color: #d1006f; font-size: 2.5rem; text-align: left;">Event Attendance</h1>
+        <!-- Flex row for form and table -->
+        <div style="display: flex; gap: 40px; align-items: flex-start;">
+            <!-- Manual Sign-in/Sign-out section -->
+            <div class="section" style="flex:1;">
+                <h2 style="color:#d1006f; margin-bottom:18px;">Manual Sign-in/Sign-out</h2>
+                <form method="post" action="{% url 'manual_sign' %}" style="display: flex; gap: 12px; align-items: center; margin-bottom: 0;">
+                    {% csrf_token %}
+                    <select name="event_id" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
+                        <option value="">Select Event</option>
+                        {% for event in events %}
+                            <option value="{{ event.id }}">{{ event.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="barcode_id" placeholder="Enter ID Number" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
+                    <select name="action" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
+                        <option value="sign_in">Sign In</option>
+                        <option value="sign_out">Sign Out</option>
+                    </select>
+                    <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
+                        Submit
+                    </button>
+                </form>
+            </div>
+                        <!-- Add this below your Manual Sign-in/Sign-out section in index.html -->
+            <form id="attendanceSheetForm" style="margin-top: 24px; display: flex; gap: 12px; align-items: center;">
+                <select name="event_id" id="eventSelect" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
+                    <option value="">Select Event</option>
+                    {% for event in events %}
+                        <option value="{{ event.id }}">{{ event.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" onclick="goToAttendanceSheet()" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
+                    View Attendance Sheet
+                </button>
+            </form>
+            <script>
+            function goToAttendanceSheet() {
+                var eventId = document.getElementById('eventSelect').value;
+                if(eventId) {
+                    window.location.href = "{% url 'attendance_sheet' 0 %}".replace('/0/', '/' + eventId + '/');
+                }
+            }
+            </script>
+            <!-- Recent Attendance Table (Right) -->
+                       <!-- In your recent attendance table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Number</th>
+                        <th>Event</th>
+                        <th>Sign In</th>
+                        <th>Sign Out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in recent_attendance %}
+                    <tr>
+                        <td>{{ record.attendee.barcode_id }}</td>
+                        <td>{{ record.event.name }}</td>
+                        <td>
+                            {% if record.sign_in_time %}
+                                {{ record.sign_in_time|date:"M d, Y H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.sign_out_time %}
+                                {{ record.sign_out_time|date:"M d, Y H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No recent attendance.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="section">
-                <!-- Replace your current Manual Sign-in/Sign-out section with this -->
-        <h2 style="color:#d1006f; margin-bottom:18px;">Manual Sign-in/Sign-out</h2>
-        <form method="post" action="{% url 'manual_sign' %}" style="display: flex; gap: 12px; align-items: center; margin-bottom: 24px;">
+
+    <!-- Barcode Scanner Section -->
+    <div style="
+        max-width: 600px;
+        margin: 40px auto 0 auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 32px 50px;
+        text-align: center;
+    ">
+        <h2 style="color:#d1006f;margin: 0; flex: 1; text-align: left;">Barcode Scanner</h2>
+        <form method="post" action="{% url 'scan_barcode' %}" style="display:flex; gap:12px; align-items:center; justify-content:flex-start; margin-top:24px;">
             {% csrf_token %}
-            <select name="event_id" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
+            <select name="event_id" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
                 <option value="">Select Event</option>
                 {% for event in events %}
                     <option value="{{ event.id }}">{{ event.name }}</option>
                 {% endfor %}
             </select>
-            <input type="text" name="barcode_id" placeholder="Enter ID Number" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
-            <select name="action" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
+            <input type="text" name="barcode_id" placeholder="Scan Barcode" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <select name="action" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
                 <option value="sign_in">Sign In</option>
                 <option value="sign_out">Sign Out</option>
             </select>
-            <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
-                Submit
-            </button>
+            <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Submit</button>
         </form>
     </div>
-</div>
-
-<!-- Barcode Scanner Section -->
-<div style="
-    max-width: 600px;
-    margin: 40px auto 0 auto;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 32px 50px; /* Added more left and right padding */
-    text-align: center;
-">
-    <h2 style="color:#d1006f;margin: 0; flex: 1; text-align: left;">Barcode Scanner</h2>
-    <form method="post" action="{% url 'scan_barcode' %}" style="display:flex; gap:12px; align-items:center; justify-content:center; margin-top:24px;">
-        {% csrf_token %}
-        <select name="event_id" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
-            <option value="">Select Event</option>
-            {% for event in events %}
-                <option value="{{ event.id }}">{{ event.name }}</option>
-            {% endfor %}
-        </select>
-        <input type="text" name="barcode_id" placeholder="Scan Barcode" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
-        <select name="action" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
-            <option value="sign_in">Sign In</option>
-            <option value="sign_out">Sign Out</option>
-        </select>
-        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Submit</button>
-    </form>
 </div>
 {% endblock %}

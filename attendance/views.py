@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .models import Event, Attendee, Attendance
+from .models import Event, Attendee, Attendance, College
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError
 from django.db.models import Q
@@ -33,10 +34,13 @@ def dashboard(request):
     students = Attendee.objects.all() # Gets all students from the database
     return render(request, 'dashboard.html', {'events': events, 'students': students})
 
-@login_required
 def index(request):
     events = Event.objects.all()
-    return render(request, 'index.html', {'events': events})
+    recent_attendance = Attendance.objects.order_by('-sign_in_time', '-sign_out_time')[:10]
+    return render(request, 'index.html', {
+        'events': events,
+        'recent_attendance': recent_attendance,
+    })
 
 @login_required
 @user_passes_test(lambda u: u.username == 'sbo_admin')
@@ -149,11 +153,6 @@ def scan_barcode(request):
         return redirect('index')
     return redirect('index')
 
-@login_required
-def attendance_sheet(request, event_id):
-    event = Event.objects.get(id=event_id)
-    attendances = Attendance.objects.filter(event=event)
-    return render(request, 'attendance_sheet.html', {'event': event, 'attendances': attendances})
 
 @login_required
 def students_list(request):
@@ -267,8 +266,79 @@ def edit_event(request, event_id):
     return render(request, 'edit_event.html', {'event': event})
 
 def manual_sign(request):
-    # Your logic here
     if request.method == 'POST':
-        # handle sign in/out
-        pass
-    return redirect('attendance_home')
+        event_id = request.POST.get('event_id')
+        barcode_id = request.POST.get('barcode_id')
+        action = request.POST.get('action')
+
+        event = get_object_or_404(Event, id=event_id)
+        attendee = get_object_or_404(Attendee, barcode_id=barcode_id)
+
+        attendance, created = Attendance.objects.get_or_create(
+            attendee=attendee,
+            event=event,
+        )
+
+        if action == 'sign_in':
+            if not attendance.sign_in_time:
+                attendance.sign_in_time = timezone.now()
+                attendance.save()
+        elif action == 'sign_out':
+            if not attendance.sign_out_time:
+                attendance.sign_out_time = timezone.now()
+                attendance.save()
+
+        return redirect('index')
+    
+def attendance_sheet(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    attendances = Attendance.objects.filter(event=event)
+    is_sbo_admin = request.user.is_superuser or request.user.groups.filter(name='sbo_admin').exists()
+    return render(request, 'attendance_sheet.html', {
+        'event': event,
+        'attendances': attendances,
+        'is_sbo_admin': is_sbo_admin,
+    })
+
+def is_sbo_admin(user):
+    return user.is_superuser or user.groups.filter(name='sbo_admin').exists()
+
+@user_passes_test(is_sbo_admin)
+def edit_attendance(request, attendance_id):
+    # Implement the function body or add a pass statement to avoid syntax errors
+    pass
+
+
+def delete_attendance(request, attendance_id):
+    attendance = get_object_or_404(Attendance, id=attendance_id)
+    event_id = attendance.event.id
+    if request.method == 'POST':
+        attendance.delete()
+        return redirect('attendance_sheet', event_id=event_id)
+    # Always return a response for GET
+    return render(request, 'confirm_delete_attendance.html', {'attendance': attendance})
+
+@user_passes_test(is_sbo_admin)
+def edit_attendance(request, attendance_id):
+    attendance = get_object_or_404(Attendance, id=attendance_id)
+    if request.method == 'POST':
+        sign_in_time = request.POST.get('sign_in_time')
+        sign_out_time = request.POST.get('sign_out_time')
+        if sign_in_time:
+            attendance.sign_in_time = sign_in_time
+        if sign_out_time:
+            attendance.sign_out_time = sign_out_time
+        attendance.save()
+        return redirect('attendance_sheet', event_id=attendance.event.id)
+    # Always return a response for GET or any non-POST
+    return render(request, 'edit_attendance.html', {'attendance': attendance})
+
+
+
+def add_college(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            College.objects.create(name=name)
+            return redirect('dashboard')  # or wherever you want to go after adding
+    return render(request, 'add_college.html')

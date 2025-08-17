@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Edit Attendance for {{ attendance.attendee.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Sign-In Time:</label>
+    <input type="datetime-local" name="sign_in_time" value="{{ attendance.sign_in_time|date:'Y-m-d\\TH:i' }}">
+    <br>
+    <label>Sign-Out Time:</label>
+    <input type="datetime-local" name="sign_out_time" value="{{ attendance.sign_out_time|date:'Y-m-d\\TH:i' }}">
+    <br>
+    <button type="submit">Save</button>
+    <a href="{% url 'attendance_sheet' attendance.event.id %}">Cancel</a>
+</form>
+{% endblock %}

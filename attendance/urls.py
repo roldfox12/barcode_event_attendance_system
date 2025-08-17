@@ -12,6 +12,8 @@ urlpatterns = [
     path('sign_out_manual/', views.sign_out_manual, name='sign_out_manual'),
     path('scan_barcode/', views.scan_barcode, name='scan_barcode'),   
     path('attendance_sheet/<int:event_id>/', views.attendance_sheet, name='attendance_sheet'),
+    path('attendance/edit/<int:attendance_id>/', views.edit_attendance, name='edit_attendance'),
+    path('attendance/delete/<int:attendance_id>/', views.delete_attendance, name='delete_attendance'),
     path('events/', views.events_list, name='events_list'),
     # SBO Officers management
     path('sbo_users/', views.sbo_users_list, name='sbo_users_list'),
@@ -23,6 +25,7 @@ urlpatterns = [
     path('delete_student/<int:student_id>/', views.delete_student, name='delete_student'),
     path('add_student/', views.add_student, name='add_student'),
     path('students/', views.students_list, name='students_list'),
-    path('', views.attendance_sheet, name='attendance_sheet'),
-    path('manual_sign/', views.manual_sign, name='manual_sign')
+    path('manual_sign/', views.manual_sign, name='manual_sign'),  
+    path('colleges/add/', views.add_college, name='add_college'),
+    
 ]
