@@ -37,9 +37,49 @@ def dashboard(request):
 def index(request):
     events = Event.objects.all()
     recent_attendance = Attendance.objects.order_by('-sign_in_time', '-sign_out_time')[:10]
+
+    # Defaults for sticky form
+    selected_event_id = ''
+    selected_action = 'sign_in'
+    barcode_id = ''
+
+    # Handle manual sign-in/sign-out
+    if request.method == 'POST':
+        if 'barcode_id' in request.POST:
+            selected_event_id = request.POST.get('event_id', '')
+            barcode_id = request.POST.get('barcode_id', '')
+            selected_action = request.POST.get('action', 'sign_in')
+
+            event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
+            attendee = None
+            if barcode_id:
+                try:
+                    attendee = Attendee.objects.get(barcode_id=barcode_id)
+                except Attendee.DoesNotExist:
+                    attendee = None
+
+            if event and attendee:
+                attendance, created = Attendance.objects.get_or_create(
+                    attendee=attendee,
+                    event=event,
+                )
+                if selected_action == 'sign_in':
+                    if not attendance.sign_in_time:
+                        attendance.sign_in_time = timezone.now()
+                        attendance.save()
+                elif selected_action == 'sign_out':
+                    if not attendance.sign_out_time:
+                        attendance.sign_out_time = timezone.now()
+                        attendance.save()
+            # Clear barcode_id after processing so you can scan the next one
+            barcode_id = ''
+
     return render(request, 'index.html', {
         'events': events,
         'recent_attendance': recent_attendance,
+        'selected_event_id': selected_event_id,
+        'selected_action': selected_action,
+        'barcode_id': barcode_id,
     })
 
 @login_required
@@ -266,29 +306,46 @@ def edit_event(request, event_id):
     return render(request, 'edit_event.html', {'event': event})
 
 def manual_sign(request):
+    events = Event.objects.all()
+    selected_event_id = None
+    selected_action = 'sign_in'
+    barcode_id = ''
+
     if request.method == 'POST':
-        event_id = request.POST.get('event_id')
+        selected_event_id = request.POST.get('event_id')
         barcode_id = request.POST.get('barcode_id')
-        action = request.POST.get('action')
+        selected_action = request.POST.get('action')
 
-        event = get_object_or_404(Event, id=event_id)
-        attendee = get_object_or_404(Attendee, barcode_id=barcode_id)
+        event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
+        attendee = None
+        if barcode_id:
+            try:
+                attendee = Attendee.objects.get(barcode_id=barcode_id)
+            except Attendee.DoesNotExist:
+                attendee = None
 
-        attendance, created = Attendance.objects.get_or_create(
-            attendee=attendee,
-            event=event,
-        )
+        if event and attendee:
+            attendance, created = Attendance.objects.get_or_create(
+                attendee=attendee,
+                event=event,
+            )
+            if selected_action == 'sign_in':
+                if not attendance.sign_in_time:
+                    attendance.sign_in_time = timezone.now()
+                    attendance.save()
+            elif selected_action == 'sign_out':
+                if not attendance.sign_out_time:
+                    attendance.sign_out_time = timezone.now()
+                    attendance.save()
+        # Clear barcode_id after processing so you can scan the next one
+        barcode_id = ''
 
-        if action == 'sign_in':
-            if not attendance.sign_in_time:
-                attendance.sign_in_time = timezone.now()
-                attendance.save()
-        elif action == 'sign_out':
-            if not attendance.sign_out_time:
-                attendance.sign_out_time = timezone.now()
-                attendance.save()
-
-        return redirect('index')
+    return render(request, 'manual_sign.html', {
+        'events': events,
+        'selected_event_id': selected_event_id,
+        'selected_action': selected_action,
+        'barcode_id': barcode_id,
+    })
     
 def attendance_sheet(request, event_id):
     event = get_object_or_404(Event, id=event_id)

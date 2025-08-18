@@ -17,18 +17,18 @@
             <!-- Manual Sign-in/Sign-out section -->
             <div class="section" style="flex:1;">
                 <h2 style="color:#d1006f; margin-bottom:18px;">Manual Sign-in/Sign-out</h2>
-                <form method="post" action="{% url 'manual_sign' %}" style="display: flex; gap: 12px; align-items: center; margin-bottom: 0;">
+                                <form method="post" action="{% url 'index' %}" style="display: flex; gap: 12px; align-items: center; margin-bottom: 0;">
                     {% csrf_token %}
                     <select name="event_id" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
                         <option value="">Select Event</option>
                         {% for event in events %}
-                            <option value="{{ event.id }}">{{ event.name }}</option>
+                            <option value="{{ event.id }}" {% if event.id|stringformat:"s" == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
                         {% endfor %}
                     </select>
-                    <input type="text" name="barcode_id" placeholder="Enter ID Number" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;">
+                    <input type="text" name="barcode_id" placeholder="Enter ID Number" required style="flex:1; padding:10px; border-radius:6px; border:1px solid #e6007a;" value="{{ barcode_id }}">
                     <select name="action" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
-                        <option value="sign_in">Sign In</option>
-                        <option value="sign_out">Sign Out</option>
+                        <option value="sign_in" {% if selected_action == "sign_in" %}selected{% endif %}>Sign In</option>
+                        <option value="sign_out" {% if selected_action == "sign_out" %}selected{% endif %}>Sign Out</option>
                     </select>
                     <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
                         Submit
@@ -107,21 +107,30 @@
         text-align: center;
     ">
         <h2 style="color:#d1006f;margin: 0; flex: 1; text-align: left;">Barcode Scanner</h2>
-        <form method="post" action="{% url 'scan_barcode' %}" style="display:flex; gap:12px; align-items:center; justify-content:flex-start; margin-top:24px;">
+                <form method="post" action="{% url 'index' %}" style="display:flex; gap:12px; align-items:center; justify-content:flex-start; margin-top:24px;">
             {% csrf_token %}
             <select name="event_id" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
                 <option value="">Select Event</option>
                 {% for event in events %}
-                    <option value="{{ event.id }}">{{ event.name }}</option>
+                    <option value="{{ event.id }}" {% if event.id|stringformat:"s" == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
                 {% endfor %}
             </select>
-            <input type="text" name="barcode_id" placeholder="Scan Barcode" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:8px; border-radius:6px; border:1px solid #e6007a;" value="{{ barcode_id }}">
             <select name="action" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
-                <option value="sign_in">Sign In</option>
-                <option value="sign_out">Sign Out</option>
+                <option value="sign_in" {% if selected_action == "sign_in" %}selected{% endif %}>Sign In</option>
+                <option value="sign_out" {% if selected_action == "sign_out" %}selected{% endif %}>Sign Out</option>
             </select>
             <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Submit</button>
         </form>
     </div>
 </div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    var scannerInput = document.getElementById('barcodeScannerInput');
+    if (scannerInput) {
+        scannerInput.focus();
+    }
+});
+</script>
 {% endblock %}
