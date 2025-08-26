@@ -84,19 +84,4 @@
         <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:15px;">Add Student</button>
     </form>
 
-    
-    <!-- Add College (aligned with other forms) -->
-       
-    
-    <h2 style="color:#e6007a; margin-top:32px;">Add College</h2>
-    <form method="post" style="display:flex; gap:12px; align-items:center; margin-bottom:24px;">
-        {% csrf_token %}
-        <input type="text" name="name" id="name" required placeholder="College Name"
-            style="padding:10px; border-radius:6px; border:1.5px solid #e6007a; flex:1; font-size:16px;">
-        <button type="submit"
-            style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; font-size:16px; font-weight:600; cursor:pointer;">
-            Add College
-        </button>
-    </form>
-
 {% endblock %}

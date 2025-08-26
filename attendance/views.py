@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+
+import attendance
 from .models import Event, Attendee, Attendance, College
 from django.utils import timezone
 from django.contrib import messages
@@ -7,7 +9,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Q, Max, F, Value, DateTimeField
+from django.db.models.functions import Greatest
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 import datetime
@@ -36,7 +39,6 @@ def dashboard(request):
 
 def index(request):
     events = Event.objects.all()
-    recent_attendance = Attendance.objects.order_by('-sign_in_time', '-sign_out_time')[:10]
 
     # Defaults for sticky form
     selected_event_id = ''
@@ -64,15 +66,24 @@ def index(request):
                     event=event,
                 )
                 if selected_action == 'sign_in':
-                    if not attendance.sign_in_time:
-                        attendance.sign_in_time = timezone.now()
-                        attendance.save()
+                    attendance.sign_in_time = timezone.now()
+                    attendance.save()
                 elif selected_action == 'sign_out':
-                    if not attendance.sign_out_time:
-                        attendance.sign_out_time = timezone.now()
-                        attendance.save()
+                    attendance.sign_out_time = timezone.now()
+                    attendance.save()
             # Clear barcode_id after processing so you can scan the next one
             barcode_id = ''
+
+    # >>>> MOVE THIS BLOCK AFTER POST <<<<
+    recent_attendance = Attendance.objects.annotate(
+        latest_time=Greatest(
+            F('sign_in_time'),
+            F('sign_out_time'),
+            output_field=DateTimeField()
+        )
+    ).filter(
+        Q(sign_in_time__isnull=False) | Q(sign_out_time__isnull=False)
+    ).order_by('-latest_time')[:10]
 
     return render(request, 'index.html', {
         'events': events,
