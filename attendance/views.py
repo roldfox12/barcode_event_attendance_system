@@ -1,8 +1,11 @@
+from asyncio import events
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 
 import attendance
-from .models import Event, Attendee, Attendance, College
+from .models import Event, Attendee, Attendance, College, SBOProfile
+from .forms import AddSBOUserForm
+from .forms_event import AddEventForm
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -30,12 +33,22 @@ def login_view(request):
             messages.error(request, "Invalid username or password.")
     return render(request, 'login.html')
 
+
 @login_required
 @user_passes_test(lambda u: u.username == 'sbo_admin')
 def dashboard(request):
-    events = Event.objects.all() # Gets all events from the database
-    students = Attendee.objects.all() # Gets all students from the database
-    return render(request, 'dashboard.html', {'events': events, 'students': students})
+    events = Event.objects.all()
+    students = Attendee.objects.all()
+    colleges = College.objects.all()
+    sbo_form = AddSBOUserForm()
+    add_event_form = AddEventForm()
+    return render(request, 'dashboard.html', {
+        'events': events,
+        'students': students,
+        'colleges': colleges,
+        'sbo_form': sbo_form,
+        'add_event_form': add_event_form,
+    })
 
 def index(request):
     events = Event.objects.all()
@@ -44,6 +57,14 @@ def index(request):
     selected_event_id = ''
     selected_action = 'sign_in'
     barcode_id = ''
+
+    # Get assigned college for SBO user
+    assigned_college = None
+    if request.user.is_authenticated and not (request.user.is_superuser or request.user.username == 'sbo_admin'):
+        try:
+            assigned_college = request.user.sboprofile.college.name
+        except Exception:
+            assigned_college = None
 
     # Handle manual sign-in/sign-out
     if request.method == 'POST':
@@ -91,7 +112,56 @@ def index(request):
         'selected_event_id': selected_event_id,
         'selected_action': selected_action,
         'barcode_id': barcode_id,
+        'assigned_college': assigned_college,
     })
+
+
+@login_required
+def add_event(request):
+    if request.method == 'POST':
+        form = AddEventForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['event_name']
+            date = form.cleaned_data['event_date']
+            # Admin can create general or college events, SBO can only create for their own college
+            if request.user.is_superuser or request.user.username == 'sbo_admin':
+                college = form.cleaned_data['college']  # None means General
+            else:
+                # Force event to be for the SBO's assigned college
+                try:
+                    college = request.user.sboprofile.college
+                except Exception:
+                    college = None
+            Event.objects.create(name=name, date=date, college=college)
+            messages.success(request, "Event created successfully!")
+        else:
+            messages.error(request, "Please provide all required fields.")
+    # Redirect to dashboard for admin, or index for SBO
+    if request.user.is_superuser or request.user.username == 'sbo_admin':
+        return redirect('dashboard')
+    else:
+        return redirect('index')
+
+@login_required
+def remove_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, "Event removed successfully!")
+        return redirect('event_list')
+    return render(request, 'remove_event_confirm.html', {'event': event})
+
+@login_required
+def event_list(request):
+    if request.user.is_superuser or request.user.username == 'sbo_admin':
+        events = Event.objects.all()
+    else:
+        college_code = request.user.username.replace('sbo_', '').upper()
+        user_college = College.objects.filter(name__iexact=college_code).first()
+        events = Event.objects.filter(
+            Q(college=user_college) | Q(college__isnull=True)
+        )
+    return render(request, 'event_list.html', {'events': events})
 
 @login_required
 @user_passes_test(lambda u: u.username == 'sbo_admin')
@@ -235,18 +305,24 @@ def sbo_users_list(request):
 @user_passes_test(lambda u: u.is_superuser)
 def add_sbo_user(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        User = get_user_model()
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
+        form = AddSBOUserForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            college = form.cleaned_data['college']
+            UserModel = get_user_model()
+            if UserModel.objects.filter(username=username).exists():
+                messages.error(request, "Username already exists.")
+            else:
+                user = UserModel.objects.create_user(username=username, password=password)
+                user.is_staff = False
+                user.is_superuser = False
+                user.save()
+                SBOProfile.objects.create(user=user, college=college)
+                messages.success(request, "SBO user added and assigned to college successfully.")
         else:
-            user = User.objects.create_user(username=username, password=password)
-            user.is_staff = False
-            user.is_superuser = False
-            user.save()
-            messages.success(request, "SBO user added successfully.")
-    return redirect('sbo_users_list')
+            messages.error(request, "Invalid form submission.")
+    return redirect('dashboard')
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -361,7 +437,10 @@ def manual_sign(request):
 def attendance_sheet(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     attendances = Attendance.objects.filter(event=event)
-    is_sbo_admin = request.user.is_superuser or request.user.groups.filter(name='sbo_admin').exists()
+    is_sbo_admin = (
+    request.user.is_superuser or
+    request.user.groups.filter(name__in=['sbo_admin', 'sbo_ccs']).exists()
+    )
     return render(request, 'attendance_sheet.html', {
         'event': event,
         'attendances': attendances,
@@ -369,7 +448,10 @@ def attendance_sheet(request, event_id):
     })
 
 def is_sbo_admin(user):
-    return user.is_superuser or user.groups.filter(name='sbo_admin').exists()
+    return (
+        user.is_superuser or
+        user.groups.filter(name__in=['sbo_admin', 'sbo_ccs']).exists()
+    )
 
 @user_passes_test(is_sbo_admin)
 def edit_attendance(request, attendance_id):
@@ -410,3 +492,33 @@ def add_college(request):
             College.objects.create(name=name)
             return redirect('dashboard')  # or wherever you want to go after adding
     return render(request, 'add_college.html')
+
+def barcode_scanner(request):
+    events = Event.objects.all()
+    success_message = None
+
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        barcode_id = request.POST.get('barcode_id')
+        action = request.POST.get('action')
+        event = get_object_or_404(Event, id=event_id)
+        attendee = get_object_or_404(Attendee, barcode_id=barcode_id)
+        attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
+        if action == 'sign_in':
+            attendance.sign_in_time = timezone.now()
+            success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
+        elif action == 'sign_out':
+            attendance.sign_out_time = timezone.now()
+            success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
+        attendance.save()
+
+    return render(request, 'barcode_scanner.html', {
+        'events': events,
+        'success_message': success_message
+    })
+
+# Removed stray code outside of function that caused syntax error
+
+
+
+

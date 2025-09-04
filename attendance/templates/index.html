@@ -1,144 +1,124 @@
+{% extends 'base.html' %}
+
 {% block content %}
-<div class="main-page" style="display: flex; flex-direction: column; align-items: center; min-height: 100vh;">
-    <div style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 40px 40px 32px 40px; max-width: 1200px; width: 100%; margin-top: 60px; position: relative;">
-        <!-- Logout button at the top right -->
-        <form action="{% url 'logout' %}" method="post" style="position: absolute; top: 32px; right: 40px; margin: 0;">
-            {% csrf_token %}
-            <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:16px;">
-                Logout
-            </button>
-        </form>
-        <h1 style="margin: 0 0 32px 0; color: #d1006f; font-size: 2.5rem; text-align: left;">Event Attendance</h1>
-        <div style="display: flex; gap: 40px; align-items: flex-start;">
-            <!-- Left: Forms stacked -->
-            <div style="flex: 1; min-width: 350px;">
-                <!-- Manual Sign-in/Sign-out -->
-                <h2 style="color:#d1006f; margin-bottom:18px;">Manual Sign-in/Sign-out</h2>
-                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; align-items: center; margin-bottom: 18px;">
-                    <form method="post" action="{% url 'index' %}" style="display: contents;">
-                        {% csrf_token %}
-                        <select name="event_id" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
-                            <option value="">Select Event</option>
-                            {% for event in events %}
-                                <option value="{{ event.id }}" {% if event.id|stringformat:"s" == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <input type="text" name="barcode_id" placeholder="Enter ID Number" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;" value="{{ barcode_id }}">
-                        <select name="action" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
-                            <option value="sign_in" {% if selected_action == "sign_in" %}selected{% endif %}>Sign In</option>
-                            <option value="sign_out" {% if selected_action == "sign_out" %}selected{% endif %}>Sign Out</option>
-                        </select>
-                        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
-                            Submit
-                        </button>
-                    </form>
+<style>
+.sbo-dashboard-container {
+    border: 2.5px solid #e6007a;
+    border-radius: 32px;
+    background: #fff;
+    padding: 56px 70px 48px 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 8px 32px 0 rgba(230,0,122,0.10), 0 1.5px 8px 0 #e6007a22;
+    margin-top: 40px;
+}
+.sbo-dashboard-container h1 {
+    color: #d1006f;
+    margin-bottom: 48px;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 12px #fff4;
+}
+.sbo-options-row {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.sbo-option {
+    background: #fff;
+    border: 2px solid #e6007a;
+    border-radius: 22px;
+    box-shadow: 0 4px 24px 0 #e6007a11;
+    padding: 48px 70px;
+    text-align: center;
+    color: #d1006f;
+    font-size: 1.4rem;
+    font-weight: bold;
+    min-width: 240px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: 
+        box-shadow 0.25s,
+        background 0.25s,
+        color 0.25s,
+        border-color 0.25s,
+        transform 0.25s;
+    position: relative;
+    overflow: hidden;
+}
+.sbo-option:hover {
+    background: #ffe6f2;
+    color: #e6007a;
+    border-color: #d1006f;
+    box-shadow: 0 8px 32px 0 #e6007a33, 0 2px 16px 0 #e6007a22;
+    transform: translateY(-8px) scale(1.05) rotate(-1deg);
+    cursor: pointer;
+}
+.sbo-logout-btn {
+    background:#e6007a;
+    color:#fff;
+    border:none;
+    padding:12px 36px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:18px;
+    font-weight: 500;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px #e6007a22;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.sbo-logout-btn:hover {
+    background: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+    transform: translateY(-2px) scale(1.04);
+}
+@media (max-width: 1100px) {
+    .sbo-options-row {
+        flex-direction: column;
+        gap: 28px;
+        align-items: center;
+    }
+    .sbo-option {
+        min-width: 220px;
+        width: 100%;
+        padding: 36px 0;
+    }
+}
+</style>
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh;">
+    <div class="sbo-dashboard-container">
+        {% if assigned_college %}
+            <h1>Welcome, SBO from {{ assigned_college }}!</h1>
+        {% else %}
+            <h1>Welcome, SBO Officer!</h1>
+        {% endif %}
+        <div class="sbo-options-row">
+            <a href="{% url 'barcode_scanner' %}" style="text-decoration: none;">
+                <div class="sbo-option">
+                    Barcode Scanner
                 </div>
-                <!-- Barcode Scanner -->
-                <h2 style="color:#d1006f;margin: 32px 0 18px 0;">Barcode Scanner</h2>
-                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; align-items: center; margin-bottom: 18px;">
-                    <form method="post" action="{% url 'index' %}" style="display: contents;">
-                        {% csrf_token %}
-                        <select name="event_id" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
-                            <option value="">Select Event</option>
-                            {% for event in events %}
-                                <option value="{{ event.id }}" {% if event.id|stringformat:"s" == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:10px; border-radius:6px; border:1px solid #e6007a;" value="{{ barcode_id }}">
-                        <select name="action" style="padding:10px; border-radius:6px; border:1px solid #e6007a;">
-                            <option value="sign_in" {% if selected_action == "sign_in" %}selected{% endif %}>Sign In</option>
-                            <option value="sign_out" {% if selected_action == "sign_out" %}selected{% endif %}>Sign Out</option>
-                        </select>
-                        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
-                            Submit
-                        </button>
-                    </form>
+            </a>
+            <a href="{% url 'add_event' %}" style="text-decoration: none;">
+                <div class="sbo-option">
+                    Create Event
                 </div>
-                
-            </div>
-            <!-- Right: Recent Attendance Table -->
-            <div style="flex: 1.2; min-width: 350px; margin-left: 48px;">
-                <h2 style="color:#d1006f;">Recent Attendance</h2>
-                <div style="background: #fff; border: 2px solid #e6007a; border-radius: 10px; box-shadow: 0 2px 8px rgba(230,0,122,0.05); padding: 18px;">
-                                <!-- Attendance Sheet Selector on the right -->
-                    <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 18px;">
-                        <form id="attendanceSheetForm" style="display: flex; gap: 16px; width: 100%;">
-                            <select name="event_id" id="eventSelect" required style="flex:2; padding:10px; border-radius:6px; border:1.5px solid #e6007a; font-size:16px;">
-                                <option value="">Select Event</option>
-                                {% for event in events %}
-                                    <option value="{{ event.id }}">{{ event.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="button"
-                                onclick="goToAttendanceSheet()"
-                                style="flex:3; background:#e6007a; color:#fff; border:none; padding:14px 0; border-radius:6px; cursor:pointer; width:100%; font-size:16px; font-weight:600;">
-                                View Attendance Sheet
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <script>
-                function goToAttendanceSheet() {
-                    var eventId = document.getElementById('eventSelect').value;
-                    if(eventId) {
-                        // Replace 0 with the selected event id in the URL
-                        window.location.href = "{% url 'attendance_sheet' 0 %}".replace('/0/', '/' + eventId + '/');
-                    } else {
-                        alert("Please select an event.");
-                    }
-                }
-                </script>
-                    <!-- SCROLLABLE TABLE WRAPPER START -->
-                    <div style="max-height: 320px; overflow-y: auto;">
-                        <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
-                            <thead>
-                                <tr style="background: #ffe6f2;">
-                                    <th style="padding: 8px; border-bottom: 2px solid #e6007a;">ID Number</th>
-                                    <th style="padding: 8px; border-bottom: 2px solid #e6007a;">Event</th>
-                                    <th style="padding: 8px; border-bottom: 2px solid #e6007a;">Sign In</th>
-                                    <th style="padding: 8px; border-bottom: 2px solid #e6007a;">Sign Out</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in recent_attendance %}
-                                <tr style="border-bottom: 1.5px solid #e6007a;">
-                                    <td style="padding: 8px; border-right: 1px solid #f8bedd;">{{ record.attendee.barcode_id }}</td>
-                                    <td style="padding: 8px; border-right: 1px solid #f8bedd;">{{ record.event.name }}</td>
-                                    <td style="padding: 8px; border-right: 1px solid #f8bedd;">
-                                        {% if record.sign_in_time %}
-                                            {{ record.sign_in_time|date:"M d, Y H:i" }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding: 8px;">
-                                        {% if record.sign_out_time %}
-                                            {{ record.sign_out_time|date:"M d, Y H:i" }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" style="padding: 8px; text-align: center;">No recent attendance.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- SCROLLABLE TABLE WRAPPER END -->
+            </a>
+            <a href="{% url 'attendance_sheet' 0 %}" style="text-decoration: none;">
+                <div class="sbo-option">
+                    View Attendance Sheet
                 </div>
-            </div>
+            </a>
         </div>
+        <form action="{% url 'logout' %}" method="post" style="margin-top: 0;">
+            {% csrf_token %}
+            <button type="submit" class="sbo-logout-btn">Logout</button>
+        </form>
     </div>
 </div>
-<script>
-window.addEventListener('DOMContentLoaded', function() {
-    var scannerInput = document.getElementById('barcodeScannerInput');
-    if (scannerInput) {
-        scannerInput.focus();
-    }
-});
-</script>
 {% endblock %}

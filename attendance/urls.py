@@ -27,5 +27,8 @@ urlpatterns = [
     path('students/', views.students_list, name='students_list'),
     path('manual_sign/', views.manual_sign, name='manual_sign'),  
     path('colleges/add/', views.add_college, name='add_college'),
+    path('barcode-scanner/', views.barcode_scanner, name='barcode_scanner'),
+
+     path('events/add/', views.add_event, name='add_event'),
     
 ]
