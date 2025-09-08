@@ -21,44 +21,75 @@
 		border-color: #d1006f;
 		box-shadow: 0 4px 16px #e6007a33;
 	}
+	.create-event-card {
+		background: #fff;
+		box-shadow: 0 8px 32px 0 rgba(230,0,122,0.10), 0 1.5px 8px 0 #e6007a22;
+		border-radius: 32px;
+		padding: 56px 70px 48px 70px;
+		margin: 40px auto;
+		max-width: 700px;
+		border: 8px solid #fff;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
 </style>
-<div class="sbo-dashboard-container" style="max-width: 500px; margin: 40px auto;">
-	<div style="display: flex; flex-direction: column; align-items: center;">
-		<h2 style="color: #d1006f; margin-bottom: 32px;">Create Event</h2>
-		<form method="post" style="display: flex; gap: 18px; align-items: center; justify-content: center;">
-			{% csrf_token %}
-			<div style="margin-bottom: 18px;">
-				<label for="id_event_name" style="font-weight: bold; color: #d1006f;">Event Name:</label><br>
-				{{ form.event_name }}
-			</div>
-			<div style="margin-bottom: 18px;">
-				<label for="id_event_date" style="font-weight: bold; color: #d1006f;">Event Date:</label><br>
-				{{ form.event_date }}
-			</div>
-			{% if user.is_superuser or user.username == 'sbo_admin' %}
-				<div style="margin-bottom: 18px;">
-					<label for="id_college" style="font-weight: bold; color: #d1006f;">College:</label><br>
-					{{ form.college }}
-				</div>
-			{% else %}
-				<div style="margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
-					<label style="font-weight: bold; color: #d1006f; margin-bottom: 4px;">College:</label>
-					<span style="color: #333; margin-left: 0;">{{ user.sboprofile.college.name }}</span>
-					<input type="hidden" name="college" value="{{ user.sboprofile.college.id }}">
-				</div>
-			{% endif %}
-			<button type="submit" class="back-btn" style="margin-left: 18px;">Create Event</button>
-		</form>
-		<div style="width: 100%; display: flex; justify-content: center; margin-top: 40px;">
-			<a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
+<div class="create-event-card">
+	<style>
+		.accent-title {
+			color: #d1006f;
+			font-size: 2.4rem;
+			font-weight: 800;
+			letter-spacing: 1px;
+			margin-bottom: 32px;
+			text-align: center;
+			position: relative;
+		}
+		.accent-title::after {
+			content: '';
+			display: block;
+			margin: 12px auto 0 auto;
+			width: 60px;
+			height: 4px;
+			background: linear-gradient(90deg, #e6007a 0%, #d1006f 100%);
+			border-radius: 2px;
+			opacity: 0.18;
+		}
+	</style>
+	<h2 class="accent-title">Create Event</h2>
+	<form method="post" style="display: flex; gap: 18px; align-items: center; justify-content: center;">
+		{% csrf_token %}
+		<div style="margin-bottom: 18px;">
+			<label for="id_event_name" style="font-weight: bold; color: #d1006f;">Event Name:</label><br>
+			{{ form.event_name }}
 		</div>
-		{% if messages %}
-			<ul style="margin-top: 24px; color: #d1006f;">
-				{% for message in messages %}
-					<li>{{ message }}</li>
-				{% endfor %}
-			</ul>
+		<div style="margin-bottom: 18px;">
+			<label for="id_event_date" style="font-weight: bold; color: #d1006f;">Event Date:</label><br>
+			{{ form.event_date }}
+		</div>
+		{% if user.is_superuser or user.username == 'sbo_admin' %}
+			<div style="margin-bottom: 18px;">
+				<label for="id_college" style="font-weight: bold; color: #d1006f;">College:</label><br>
+				{{ form.college }}
+			</div>
+		{% else %}
+			<div style="margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
+				<label style="font-weight: bold; color: #d1006f; margin-bottom: 4px;">College:</label>
+				<span style="color: #333; margin-left: 0;">{{ user.sboprofile.college.name }}</span>
+				<input type="hidden" name="college" value="{{ user.sboprofile.college.id }}">
+			</div>
 		{% endif %}
+		<button type="submit" class="back-btn" style="margin-left: 18px;">Create Event</button>
+	</form>
+	<div style="width: 100%; display: flex; justify-content: center; margin-top: 40px;">
+		<a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
 	</div>
+	{% if messages %}
+		<ul style="margin-top: 24px; color: #d1006f;">
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
 </div>
 {% endblock %}

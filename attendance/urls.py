@@ -30,4 +30,5 @@ urlpatterns = [
     path('barcode-scanner/', views.barcode_scanner, name='barcode_scanner'),
     path('view_attendance_sheet/', views.view_attendance_sheet, name='view_attendance_sheet'),
     path('view_attendance_sheet/<int:event_id>/', views.view_attendance_sheet_event, name='view_attendance_sheet_event'),
+    path('print_attendance_sheet/<int:event_id>/', views.print_attendance_sheet, name='print_attendance_sheet'),
 ]

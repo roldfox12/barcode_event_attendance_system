@@ -78,19 +78,46 @@
             <span>{{ success_message }}</span>
         </div>
         {% endif %}
-        <h1 style="color: #d1006f; text-align: center; margin-bottom: 32px;">Barcode Scanner</h1>
+        {% if error_message %}
+        <div class="fancy-notif" style="border-left:6px solid #d1006f; background:linear-gradient(90deg,#ffe6f2 60%,#fde6f3 100%); color:#d1006f;">
+            <span class="notif-icon">&#9888;</span>
+            <span>{{ error_message }}</span>
+        </div>
+        {% endif %}
+                <style>
+                    .accent-title {
+                        color: #d1006f;
+                        font-size: 2.4rem;
+                        font-weight: 800;
+                        letter-spacing: 1px;
+                        margin-bottom: 32px;
+                        text-align: center;
+                        position: relative;
+                    }
+                    .accent-title::after {
+                        content: '';
+                        display: block;
+                        margin: 12px auto 0 auto;
+                        width: 60px;
+                        height: 4px;
+                        background: linear-gradient(90deg, #e6007a 0%, #d1006f 100%);
+                        border-radius: 2px;
+                        opacity: 0.18;
+                    }
+                </style>
+                <h1 class="accent-title">Barcode Scanner</h1>
         <form method="post" action="{% url 'barcode_scanner' %}" style="display: flex; flex-direction: column; gap: 18px; width: 100%;">
             {% csrf_token %}
             <select name="event_id" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
                 <option value="">Select Event</option>
                 {% for event in events %}
-                    <option value="{{ event.id }}">{{ event.name }}</option>
+                    <option value="{{ event.id }}" {% if event.id|stringformat:'s' == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
                 {% endfor %}
             </select>
-            <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
+            <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;" value="{{ barcode_id }}">
             <select name="action" style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
-                <option value="sign_in">Sign In</option>
-                <option value="sign_out">Sign Out</option>
+                <option value="sign_in" {% if action == 'sign_in' %}selected{% endif %}>Sign In</option>
+                <option value="sign_out" {% if action == 'sign_out' %}selected{% endif %}>Sign Out</option>
             </select>
             <div class="form-actions">
                 <a href="{% url 'index' %}" class="back-btn">&larr; Back</a>

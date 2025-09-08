@@ -7,12 +7,36 @@
     align-items: center;
     margin-top: 60px;
 }
+.view-attendance-card {
+    background: #fff;
+    box-shadow: 0 8px 32px 0 rgba(230,0,122,0.10), 0 1.5px 8px 0 #e6007a22;
+    border-radius: 32px;
+    padding: 56px 70px 48px 70px;
+    margin: 40px auto;
+    max-width: 700px;
+    border: 8px solid #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .view-attendance-title {
     color: #d1006f;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 18px;
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 28px;
     text-align: center;
+    letter-spacing: 1px;
+    position: relative;
+}
+.view-attendance-title::after {
+    content: '';
+    display: block;
+    margin: 12px auto 0 auto;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #e6007a 0%, #d1006f 100%);
+    border-radius: 2px;
+    opacity: 0.18;
 }
 .view-attendance-desc {
     color: #333;
@@ -102,24 +126,25 @@
 }
 </style>
 <div class="view-attendance-list">
-    <div class="view-attendance-title">View Attendance Sheets</div>
-    <div class="view-attendance-desc">Below are all events for your college and general events. Click an event to view its attendance sheet.</div>
-    <ul class="event-list">
-        {% for event in events %}
-            <li class="event-list-item">
-                <div class="event-title">{{ event.name }}</div>
-                <div class="event-date">{{ event.date|date:'M d, Y H:i' }}</div>
-                {% if event.college %}
-                    <div class="event-college">{{ event.college.name }}</div>
-                {% else %}
-                    <div class="event-college">General Event</div>
-                {% endif %}
-                <a href="{% url 'view_attendance_sheet_event' event.id %}" class="event-link">View Sheet</a>
-            </li>
-        {% empty %}
-            <li class="event-list-item">No events available.</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'index' %}" class="back-btn">Back</a>
+    <div class="view-attendance-card">
+        <div class="view-attendance-title">Attendance Sheets</div>
+        <ul class="event-list">
+            {% for event in events %}
+                <li class="event-list-item">
+                    <div class="event-title">{{ event.name }}</div>
+                    <div class="event-date">{{ event.date|date:'M d, Y H:i' }}</div>
+                    {% if event.college %}
+                        <div class="event-college">{{ event.college.name }}</div>
+                    {% else %}
+                        <div class="event-college">General Event</div>
+                    {% endif %}
+                    <a href="{% url 'print_attendance_sheet' event.id %}" class="event-link" target="_blank">View Sheet</a>
+                </li>
+            {% empty %}
+                <li class="event-list-item">No events available.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'index' %}" class="back-btn">Back</a>
+    </div>
 </div>
 {% endblock %}

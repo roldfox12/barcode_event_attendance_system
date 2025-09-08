@@ -1,6 +1,97 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+.attendance-sheet {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px #e6007a22;
+    padding: 48px 40px;
+    min-width: 350px;
+    max-width: 900px;
+    margin: 60px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.attendance-sheet h1 {
+    color: #d1006f;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.attendance-sheet table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 24px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 1rem;
+    background: #f8f8ff;
+    box-shadow: 0 2px 8px #e6007a11;
+}
+.attendance-sheet th, .attendance-sheet td {
+    border: 1.5px solid #e6007a;
+    padding: 12px 18px;
+    text-align: left;
+}
+.attendance-sheet th {
+    background: #e6f2ff;
+    color: #d1006f;
+    font-weight: bold;
+    border-bottom: 2.5px solid #e6007a;
+}
+.attendance-sheet td {
+    background: #fff;
+    color: #333;
+}
+.attendance-btn, .back-btn {
+    display: inline-block;
+    background: #fff;
+    color: #e6007a;
+    border: 2px solid #e6007a;
+    border-radius: 8px;
+    padding: 10px 26px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #e6007a11;
+    margin: 8px 8px 0 0;
+}
+.attendance-btn:hover, .back-btn:hover {
+    background: #e6007a;
+    color: #fff;
+    border-color: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+}
+.print-btn {
+    display: inline-block;
+    background: #e6007a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 26px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px #e6007a22;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    margin-right: 12px;
+}
+.print-btn:hover {
+    background: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+    transform: translateY(-2px) scale(1.04);
+}
+.action-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 18px;
+}
+</style>
 <div class="attendance-sheet">
     <h1>{{ event.name }} Attendance</h1>
     <table>
@@ -22,18 +113,21 @@
                     <td>{{ attendance.sign_out_time|date:"h:i A" }}</td>
                     {% if is_sbo_admin %}
                     <td>
-                        <a href="{% url 'edit_attendance' attendance.id %}">Edit</a> |
-                        <a href="{% url 'delete_attendance' attendance.id %}" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
+                        <a href="{% url 'edit_attendance' attendance.id %}" class="attendance-btn">Edit</a>
+                        <a href="{% url 'delete_attendance' attendance.id %}" class="attendance-btn" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
                     </td>
                     {% endif %}
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    <button onclick="window.print()">Print attendance sheet</button>
-    {% if is_sbo_admin %}
-        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-    {% endif %}
-    <a href="{% url 'index' %}">Back to Home</a>
+    <div class="action-row">
+        {% if is_sbo_admin %}
+            <a href="{% url 'dashboard' %}" class="back-btn">Back to Dashboard</a>
+        {% else %}
+            <a href="{% url 'view_attendance_sheet' %}" class="back-btn">Back</a>
+        {% endif %}
+        <a href="{% url 'print_attendance_sheet' event.id %}" class="print-btn" target="_blank">Print attendance sheet</a>
+    </div>
 </div>
 {% endblock %}

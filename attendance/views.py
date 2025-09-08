@@ -80,6 +80,7 @@ def index(request):
                 try:
                     attendee = Attendee.objects.get(barcode_id=barcode_id)
                 except Attendee.DoesNotExist:
+                    messages.error(request, "ID is not registered.")
                     attendee = None
 
             if event and attendee:
@@ -440,6 +441,7 @@ def manual_sign(request):
             try:
                 attendee = Attendee.objects.get(barcode_id=barcode_id)
             except Attendee.DoesNotExist:
+                messages.error(request, "ID is not registered.")
                 attendee = None
 
         if event and attendee:
@@ -536,25 +538,45 @@ def barcode_scanner(request):
         except Exception:
             events = Event.objects.filter(college__isnull=True)
     success_message = None
+    error_message = None
+    selected_event_id = None
+    barcode_id = ''
+    action = 'sign_in'
 
     if request.method == 'POST':
-        event_id = request.POST.get('event_id')
-        barcode_id = request.POST.get('barcode_id')
-        action = request.POST.get('action')
-        event = get_object_or_404(Event, id=event_id)
-        attendee = get_object_or_404(Attendee, barcode_id=barcode_id)
-        attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
-        if action == 'sign_in':
-            attendance.sign_in_time = timezone.now()
-            success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
-        elif action == 'sign_out':
-            attendance.sign_out_time = timezone.now()
-            success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
-        attendance.save()
+        selected_event_id = request.POST.get('event_id')
+        barcode_id = request.POST.get('barcode_id', '')
+        action = request.POST.get('action', 'sign_in')
+        event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
+        try:
+            attendee = Attendee.objects.get(barcode_id=barcode_id)
+            attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
+            if action == 'sign_in':
+                if attendance.sign_in_time:
+                    error_message = "ID has already been signed in."
+                else:
+                    attendance.sign_in_time = timezone.now()
+                    success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
+                    attendance.save()
+            elif action == 'sign_out':
+                if attendance.sign_out_time:
+                    error_message = "ID has already been signed out."
+                else:
+                    attendance.sign_out_time = timezone.now()
+                    success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
+                    attendance.save()
+        except Attendee.DoesNotExist:
+            error_message = "ID is not registered."
+        # Keep selected_event_id and action, but clear barcode_id for next scan
+        barcode_id = ''
 
     return render(request, 'barcode_scanner.html', {
         'events': events,
-        'success_message': success_message
+        'success_message': success_message,
+        'error_message': error_message,
+        'selected_event_id': selected_event_id,
+        'barcode_id': barcode_id,
+        'action': action
     })
 
 def view_attendance_sheet(request):
@@ -579,6 +601,15 @@ def view_attendance_sheet_event(request, event_id):
         'event': event,
         'attendances': attendances,
         'is_sbo_admin': False,  # Colleges are not SBO admins
+    })
+
+def print_attendance_sheet(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    attendances = Attendance.objects.filter(event=event)
+    # Render a minimal template for printing
+    return render(request, 'print_attendance_sheet.html', {
+        'event': event,
+        'attendances': attendances,
     })
 
 
