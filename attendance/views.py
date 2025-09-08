@@ -6,6 +6,8 @@ import attendance
 from .models import Event, Attendee, Attendance, College, SBOProfile
 from .forms import AddSBOUserForm
 from .forms_event import AddEventForm
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -35,7 +37,6 @@ def login_view(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.username == 'sbo_admin')
 def dashboard(request):
     events = Event.objects.all()
     students = Attendee.objects.all()
@@ -106,41 +107,83 @@ def index(request):
         Q(sign_in_time__isnull=False) | Q(sign_out_time__isnull=False)
     ).order_by('-latest_time')[:10]
 
-    return render(request, 'index.html', {
-        'events': events,
-        'recent_attendance': recent_attendance,
-        'selected_event_id': selected_event_id,
-        'selected_action': selected_action,
-        'barcode_id': barcode_id,
-        'assigned_college': assigned_college,
-    })
+
+    return render(
+        request,
+        'index.html',
+        {
+            'events': events,
+            'recent_attendance': recent_attendance,
+            'selected_event_id': selected_event_id,
+            'selected_action': selected_action,
+            'barcode_id': barcode_id,
+            'assigned_college': assigned_college,
+        }
+    )
 
 
 @login_required
-def add_event(request):
+def create_event(request):
     if request.method == 'POST':
         form = AddEventForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['event_name']
             date = form.cleaned_data['event_date']
-            # Admin can create general or college events, SBO can only create for their own college
             if request.user.is_superuser or request.user.username == 'sbo_admin':
-                college = form.cleaned_data['college']  # None means General
+                college = form.cleaned_data['college']
             else:
-                # Force event to be for the SBO's assigned college
                 try:
                     college = request.user.sboprofile.college
                 except Exception:
                     college = None
             Event.objects.create(name=name, date=date, college=college)
             messages.success(request, "Event created successfully!")
+            # Redirect after successful creation
+            if request.user.is_superuser or request.user.username == 'sbo_admin':
+                return redirect('dashboard')
+            else:
+                return redirect('index')
         else:
             messages.error(request, "Please provide all required fields.")
-    # Redirect to dashboard for admin, or index for SBO
-    if request.user.is_superuser or request.user.username == 'sbo_admin':
-        return redirect('dashboard')
     else:
-        return redirect('index')
+        # GET request: render the form
+        if request.user.is_superuser or request.user.username == 'sbo_admin':
+            form = AddEventForm()
+        else:
+            # For SBO, hide college field (handled in form or template)
+            form = AddEventForm()
+        return render(request, 'add_event.html', {'form': form})
+        print(f"DEBUG: add_event called. User authenticated: {request.user.is_authenticated}, Username: {request.user.username}, Superuser: {request.user.is_superuser}")
+        if request.method == 'POST':
+            print("DEBUG: POST request received.")
+            form = AddEventForm(request.POST)
+            if form.is_valid():
+                print("DEBUG: Form is valid.")
+                name = form.cleaned_data['event_name']
+                date = form.cleaned_data['event_date']
+                if request.user.is_superuser or request.user.username == 'sbo_admin':
+                    print("DEBUG: User is admin. Using college from form.")
+                    college = form.cleaned_data['college']
+                else:
+                    print("DEBUG: User is SBO. Getting assigned college.")
+                    try:
+                        college = request.user.sboprofile.college
+                        print(f"DEBUG: SBO assigned college: {college}")
+                    except Exception as e:
+                        print(f"DEBUG: Error getting SBO college: {e}")
+                        college = None
+                Event.objects.create(name=name, date=date, college=college)
+                messages.success(request, "Event created successfully!")
+            else:
+                print("DEBUG: Form is invalid.")
+                messages.error(request, "Please provide all required fields.")
+        # Redirect to dashboard for admin, or index for SBO
+        if request.user.is_superuser or request.user.username == 'sbo_admin':
+            print("DEBUG: Redirecting to dashboard.")
+            return redirect('dashboard')
+        else:
+            print("DEBUG: Redirecting to index.")
+            return redirect('index')
 
 @login_required
 def remove_event(request, event_id):
@@ -164,7 +207,6 @@ def event_list(request):
     return render(request, 'event_list.html', {'events': events})
 
 @login_required
-@user_passes_test(lambda u: u.username == 'sbo_admin')
 def add_event(request):
     if request.method == 'POST':
         name = request.POST.get('event_name')
@@ -363,19 +405,8 @@ def edit_student(request, student_id):
         student.save()
         messages.success(request, "Student updated successfully.")
         return redirect('students_list')
-    return render(request, 'edit_student.html', {'student': student})
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def edit_event(request, event_id):
-    event = Event.objects.get(id=event_id)
-    if request.method == 'POST':
-        event.name = request.POST.get('name')
-        event.date = request.POST.get('date')
-        event.save()
-        messages.success(request, "Event updated successfully.")
-        return redirect('events_list')
-    return render(request, 'edit_event.html', {'event': event})
+    return render(request, 'edit_student.html', {'student': student})
 
 
 @login_required
@@ -494,7 +525,16 @@ def add_college(request):
     return render(request, 'add_college.html')
 
 def barcode_scanner(request):
-    events = Event.objects.all()
+    if request.user.is_superuser or request.user.username == 'sbo_admin':
+        events = Event.objects.all()
+    else:
+        try:
+            user_college = request.user.sboprofile.college
+            events = Event.objects.filter(
+                Q(college=user_college) | Q(college__isnull=True)
+            )
+        except Exception:
+            events = Event.objects.filter(college__isnull=True)
     success_message = None
 
     if request.method == 'POST':
@@ -517,7 +557,29 @@ def barcode_scanner(request):
         'success_message': success_message
     })
 
-# Removed stray code outside of function that caused syntax error
+def view_attendance_sheet(request):
+    user = request.user
+    events = []
+    if user.is_superuser or user.username == 'sbo_admin':
+        events = Event.objects.all().order_by('-date')
+    else:
+        try:
+            college = user.sboprofile.college
+            events = Event.objects.filter(
+                Q(college=college) | Q(college__isnull=True)
+            ).order_by('-date')
+        except Exception:
+            events = Event.objects.filter(college__isnull=True).order_by('-date')
+    return render(request, 'view_attendance_sheet.html', {'events': events})
+
+def view_attendance_sheet_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    attendances = Attendance.objects.filter(event=event)
+    return render(request, 'attendance_sheet.html', {
+        'event': event,
+        'attendances': attendances,
+        'is_sbo_admin': False,  # Colleges are not SBO admins
+    })
 
 
 

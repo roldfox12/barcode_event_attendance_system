@@ -73,14 +73,14 @@
 
 
     <h2 style="margin-bottom:10px;">Add Events</h2>
-    <form method="post" action="{% url 'add_event' %}" style="margin-bottom:12px;">
+    <form method="post" action="{% url 'create_event' %}" style="margin-bottom:12px;">
         {% csrf_token %}
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;">
             <input type="text" name="event_name" placeholder="Event Name" required
                    style="flex:1 1 120px; min-width:120px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
             <input type="datetime-local" name="event_date" required
                    style="flex:1 1 160px; min-width:160px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-            {% if request.user.is_superuser or request.user.username == 'sbo_admin' %}
+            {% if user.is_superuser or user.username == 'sbo_admin' %}
                 <select name="college" style="flex:1 1 140px; min-width:140px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px; background:#fff;">
                     <option value="">General (All Colleges)</option>
                     {% for college in colleges %}

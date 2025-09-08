@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.view-attendance-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 60px;
+}
+.view-attendance-title {
+    color: #d1006f;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.view-attendance-desc {
+    color: #333;
+    font-size: 1.08rem;
+    margin-bottom: 32px;
+    text-align: center;
+}
+.event-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 480px;
+}
+.event-list-item {
+    background: #fff;
+    border: 2px solid #e6007a;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px #e6007a11;
+    margin-bottom: 18px;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+}
+.event-list-item:hover {
+    background: #ffe6f2;
+    border-color: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+}
+.event-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #d1006f;
+    margin-bottom: 4px;
+}
+.event-date {
+    font-size: 0.98rem;
+    color: #444;
+    margin-bottom: 2px;
+}
+.event-college {
+    font-size: 0.95rem;
+    color: #e6007a;
+    margin-bottom: 6px;
+}
+.event-link {
+    color: #e6007a;
+    font-weight: 500;
+    text-decoration: none;
+    border: 2px solid #e6007a;
+    border-radius: 8px;
+    padding: 8px 22px;
+    font-size: 1rem;
+    background: #fff;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #e6007a11;
+    margin-top: 8px;
+    display: inline-block;
+}
+.event-link:hover {
+    background: #e6007a;
+    color: #fff;
+    border-color: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+}
+.back-btn {
+    display: inline-block;
+    background: #fff;
+    color: #e6007a;
+    border: 2px solid #e6007a;
+    border-radius: 8px;
+    padding: 10px 26px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #e6007a11;
+    margin-top: 18px;
+}
+.back-btn:hover {
+    background: #e6007a;
+    color: #fff;
+    border-color: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+}
+</style>
+<div class="view-attendance-list">
+    <div class="view-attendance-title">View Attendance Sheets</div>
+    <div class="view-attendance-desc">Below are all events for your college and general events. Click an event to view its attendance sheet.</div>
+    <ul class="event-list">
+        {% for event in events %}
+            <li class="event-list-item">
+                <div class="event-title">{{ event.name }}</div>
+                <div class="event-date">{{ event.date|date:'M d, Y H:i' }}</div>
+                {% if event.college %}
+                    <div class="event-college">{{ event.college.name }}</div>
+                {% else %}
+                    <div class="event-college">General Event</div>
+                {% endif %}
+                <a href="{% url 'view_attendance_sheet_event' event.id %}" class="event-link">View Sheet</a>
+            </li>
+        {% empty %}
+            <li class="event-list-item">No events available.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'index' %}" class="back-btn">Back</a>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('edit_event/<int:event_id>/', views.edit_event, name='edit_event'),
-    path('add_event/', views.add_event, name='add_event'),
+    path('create_event/', views.create_event, name='create_event'),
     path('delete_event/<int:event_id>/', views.delete_event, name='delete_event'),
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -28,7 +28,6 @@ urlpatterns = [
     path('manual_sign/', views.manual_sign, name='manual_sign'),  
     path('colleges/add/', views.add_college, name='add_college'),
     path('barcode-scanner/', views.barcode_scanner, name='barcode_scanner'),
-
-     path('events/add/', views.add_event, name='add_event'),
-    
+    path('view_attendance_sheet/', views.view_attendance_sheet, name='view_attendance_sheet'),
+    path('view_attendance_sheet/<int:event_id>/', views.view_attendance_sheet_event, name='view_attendance_sheet_event'),
 ]

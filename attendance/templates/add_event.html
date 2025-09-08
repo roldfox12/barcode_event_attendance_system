@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+	.back-btn {
+		display: inline-block;
+		background: #fff;
+		color: #e6007a;
+		border: 2px solid #e6007a;
+		border-radius: 8px;
+		padding: 10px 26px;
+		font-size: 1rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+		box-shadow: 0 2px 8px #e6007a11;
+	}
+	.back-btn:hover {
+		background: #e6007a;
+		color: #fff;
+		border-color: #d1006f;
+		box-shadow: 0 4px 16px #e6007a33;
+	}
+</style>
+<div class="sbo-dashboard-container" style="max-width: 500px; margin: 40px auto;">
+	<div style="display: flex; flex-direction: column; align-items: center;">
+		<h2 style="color: #d1006f; margin-bottom: 32px;">Create Event</h2>
+		<form method="post" style="display: flex; gap: 18px; align-items: center; justify-content: center;">
+			{% csrf_token %}
+			<div style="margin-bottom: 18px;">
+				<label for="id_event_name" style="font-weight: bold; color: #d1006f;">Event Name:</label><br>
+				{{ form.event_name }}
+			</div>
+			<div style="margin-bottom: 18px;">
+				<label for="id_event_date" style="font-weight: bold; color: #d1006f;">Event Date:</label><br>
+				{{ form.event_date }}
+			</div>
+			{% if user.is_superuser or user.username == 'sbo_admin' %}
+				<div style="margin-bottom: 18px;">
+					<label for="id_college" style="font-weight: bold; color: #d1006f;">College:</label><br>
+					{{ form.college }}
+				</div>
+			{% else %}
+				<div style="margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
+					<label style="font-weight: bold; color: #d1006f; margin-bottom: 4px;">College:</label>
+					<span style="color: #333; margin-left: 0;">{{ user.sboprofile.college.name }}</span>
+					<input type="hidden" name="college" value="{{ user.sboprofile.college.id }}">
+				</div>
+			{% endif %}
+			<button type="submit" class="back-btn" style="margin-left: 18px;">Create Event</button>
+		</form>
+		<div style="width: 100%; display: flex; justify-content: center; margin-top: 40px;">
+			<a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
+		</div>
+		{% if messages %}
+			<ul style="margin-top: 24px; color: #d1006f;">
+				{% for message in messages %}
+					<li>{{ message }}</li>
+				{% endfor %}
+			</ul>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

@@ -104,12 +104,20 @@
                     Barcode Scanner
                 </div>
             </a>
-            <a href="{% url 'add_event' %}" style="text-decoration: none;">
-                <div class="sbo-option">
-                    Create Event
-                </div>
-            </a>
-            <a href="{% url 'attendance_sheet' 0 %}" style="text-decoration: none;">
+            {% if user.is_superuser or user.username == 'sbo_admin' %}
+                <a href="{% url 'add_event' %}" style="text-decoration: none;">
+                    <div class="sbo-option">
+                        Add Event
+                    </div>
+                </a>
+            {% else %}
+                <a href="{% url 'create_event' %}" style="text-decoration: none;">
+                    <div class="sbo-option">
+                        Create Event
+                    </div>
+                </a>
+            {% endif %}
+            <a href="{% url 'view_attendance_sheet' %}" style="text-decoration: none;">
                 <div class="sbo-option">
                     View Attendance Sheet
                 </div>
