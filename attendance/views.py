@@ -579,21 +579,25 @@ def barcode_scanner(request):
         event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
         try:
             attendee = Attendee.objects.get(barcode_id=barcode_id)
-            attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
-            if action == 'sign_in':
-                if attendance.sign_in_time:
-                    error_message = "ID has already been signed in."
-                else:
-                    attendance.sign_in_time = timezone.now()
-                    success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
-                    attendance.save()
-            elif action == 'sign_out':
-                if attendance.sign_out_time:
-                    error_message = "ID has already been signed out."
-                else:
-                    attendance.sign_out_time = timezone.now()
-                    success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
-                    attendance.save()
+            # Check if event has a college restriction
+            if event and event.college and attendee.college != event.college:
+                error_message = "Student doesn't belong to this college."
+            else:
+                attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
+                if action == 'sign_in':
+                    if attendance.sign_in_time:
+                        error_message = "ID has already been signed in."
+                    else:
+                        attendance.sign_in_time = timezone.now()
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
+                        attendance.save()
+                elif action == 'sign_out':
+                    if attendance.sign_out_time:
+                        error_message = "ID has already been signed out."
+                    else:
+                        attendance.sign_out_time = timezone.now()
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
+                        attendance.save()
         except Attendee.DoesNotExist:
             error_message = "ID is not registered."
         # Keep selected_event_id and action, but clear barcode_id for next scan
