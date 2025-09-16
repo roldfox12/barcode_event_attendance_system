@@ -1,108 +1,326 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard" style="max-width:600px; margin:40px auto; background:#fff; padding:32px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-
-    <!-- Header with Attendance Sheet Dropdown and Logout Button -->
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1 style="margin:0;">Admin Dashboard</h1>
-        <div style="display: flex; gap: 12px;">
-            <!-- Dropdown for event sheets -->
-            <form id="eventSheetForm" style="display:flex; gap:8px; align-items:center; margin:0;">
-                <select id="eventSheetSelect" required style="padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-                    <option value="">Select Event Sheet</option>
-                    {% for event in events %}
-                        <option value="{{ event.id }}">{{ event.name }}</option>
-                    {% endfor %}
-                </select>
-                <button type="button" onclick="goToEventSheet()" style="background:#e6007a; color:#fff; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:15px;">Go</button>
-            </form>
+<style>
+    .dashboard-layout {
+        display: flex;
+        min-height: 100vh;
+        width: 100vw;
+        background: #fff;
+    }
+    .sidebar {
+        width: 240px;
+        min-width: 60px;
+        background: linear-gradient(135deg, #ffe3f0 0%, #f7e6ff 100%);
+        border-right: 2.5px solid #f7e6ffcc;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: width 0.2s, box-shadow 0.2s;
+        z-index: 2;
+        box-shadow: 4px 0 32px 0 #e6007a22, 0 2px 24px #fff3fa;
+        position: relative;
+        backdrop-filter: blur(8px) saturate(1.2);
+        background-clip: padding-box;
+        border-top-right-radius: 22px;
+        border-bottom-right-radius: 22px;
+        margin: 10px 0 10px 10px;
+        overflow: hidden;
+    }
+    /* Collapsible sidebar removed */
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 28px 22px 16px 22px;
+        border-bottom: 2px solid #f7e6ffcc;
+        background: rgba(255,255,255,0.45);
+        box-shadow: 0 2px 12px #e6007a11;
+    }
+    .sidebar-logo {
+        font-size: 2.1rem;
+        font-weight: 900;
+        color: #e6007a;
+        letter-spacing: 2.5px;
+        margin-right: 10px;
+        font-family: 'Inter', Arial, Helvetica, sans-serif;
+        text-shadow: 0 4px 16px #e6007a33, 0 1px 0 #fff;
+        filter: brightness(1.1);
+    }
+    .sidebar-title {
+        font-size: 1.18rem;
+        font-weight: 800;
+        color: #b1005c;
+        white-space: nowrap;
+        transition: opacity 0.2s;
+        letter-spacing: 1.5px;
+        opacity: 0.92;
+        text-shadow: 0 1px 0 #fff, 0 2px 8px #e6007a11;
+    }
+    /* Collapsible sidebar removed */
+    .sidebar-toggle {
+        display: none;
+    }
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 22px;
+        padding: 0 18px;
+    }
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 13px 20px 13px 16px;
+        border-radius: 12px;
+        color: #e6007a;
+        font-weight: 700;
+        font-size: 1.13rem;
+        background: rgba(255,255,255,0.55);
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+        text-decoration: none;
+        box-shadow: 0 1px 8px #e6007a0a;
+        margin-bottom: 2px;
+        border-left: 4px solid transparent;
+        position: relative;
+    }
+    .sidebar-link:hover, .sidebar-link:focus {
+        background: linear-gradient(90deg, #ffe3f0 60%, #f7e6ff 100%);
+        color: #b1005c;
+        box-shadow: 0 4px 16px #e6007a22;
+        outline: none;
+        border-left: 4px solid #e6007a;
+        transform: translateX(3px) scale(1.03);
+    }
+    /* Collapsible sidebar removed */
+    .sidebar-link i {
+        font-size: 1.35rem;
+        color: #b1005c;
+        min-width: 22px;
+        text-align: center;
+        filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 2px 6px #e6007a11);
+    }
+    .sidebar-footer {
+        margin-top: auto;
+        padding: 20px 18px 22px 18px;
+        border-top: 2px solid #f7e6ffcc;
+        background: rgba(255,255,255,0.45);
+        box-shadow: 0 -2px 12px #e6007a11;
+        border-bottom-right-radius: 18px;
+    }
+    .sidebar-logout-btn {
+        width: 100%;
+        background: linear-gradient(90deg, #e6007a 60%, #b1005c 100%);
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        padding: 13px 0;
+        font-size: 1.13rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+        box-shadow: 0 2px 12px #e6007a22;
+        margin-top: 8px;
+        letter-spacing: 1px;
+    }
+    .sidebar-logout-btn:hover {
+        background: linear-gradient(90deg, #b1005c 60%, #e6007a 100%);
+        box-shadow: 0 4px 18px #e6007a33;
+        transform: scale(1.04);
+    }
+    .main-content {
+        flex: 1 1 auto;
+        padding: 2vw 4vw 2vw 4vw;
+        background: #fff;
+        min-width: 0;
+    }
+    @media (max-width: 900px) {
+        .dashboard-layout {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100vw;
+            min-width: 0;
+            border-right: none;
+            border-bottom: 2px solid #f7e6ff;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .main-content {
+            padding: 4vw 2vw;
+        }
+    }
+    /* Uniform input and button styles */
+    .dashboard-input, .dashboard-select {
+        flex: 1 1 180px;
+        min-width: 120px;
+        padding: 0.35em 0.7em;
+        border-radius: 6px;
+        border: 1.5px solid #b1005c;
+        font-size: 1em;
+        background: #fff;
+        margin-bottom: 0.1vw;
+        transition: border 0.15s, box-shadow 0.15s;
+        box-shadow: 0 1px 4px #e6007a0a;
+        height: 2em;
+        box-sizing: border-box;
+    }
+    .dashboard-input:focus, .dashboard-select:focus {
+        border: 1.5px solid #e6007a;
+        outline: none;
+        box-shadow: 0 2px 8px #e6007a22;
+    }
+</style>
+<div class="dashboard-layout">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Welcome, Admin! 🎉</span>
+        </div>
+        <div class="sidebar-nav">
+            <a href="{% url 'students_list' %}" class="sidebar-link"><i class="fa fa-users"></i> <span>View All Students</span></a>
+            <a href="{% url 'events_list' %}" class="sidebar-link"><i class="fa fa-calendar"></i> <span>View All Events</span></a>
+            <a href="{% url 'sbo_users_list' %}" class="sidebar-link"><i class="fa fa-user-tie"></i> <span>View SBO Officers</span></a>
+        </div>
+        <div class="sidebar-footer">
             <form action="{% url 'logout' %}" method="post" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">Logout</button>
+                <button type="submit" class="sidebar-logout-btn">Logout</button>
             </form>
         </div>
-    </div>
-    <script>
-        function goToEventSheet() {
-            var eventId = document.getElementById('eventSheetSelect').value;
-            if(eventId) {
-                window.location.href = "{% url 'attendance_sheet' 0 %}".replace('/0/', '/' + eventId + '/');
-            }
-        }
-    </script>
-    <!-- Navigation buttons -->
-    <div style="margin: 20px 0 12px 0; display: flex; gap: 10px;">
-        <a href="{% url 'students_list' %}">
-            <button type="button" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">View All Students</button>
-        </a>
-        <a href="{% url 'events_list' %}">
-            <button type="button" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">View All Events</button>
-        </a>
-        <a href="{% url 'sbo_users_list' %}">
-            <button type="button" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px;">View SBO Officers</button>
-        </a>
-    </div>
-
-    <hr style="margin:18px 0;">
-
-    <!-- SBO User Management Section -->
-
-
-    <h2 style="margin-bottom:10px;">Add SBO User</h2>
-    <form method="post" action="{% url 'add_sbo_user' %}" style="margin-bottom:12px;">
-        {% csrf_token %}
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-            <input type="text" name="username" placeholder="Username" required
-                   style="flex:1 1 120px; min-width:120px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-            <input type="password" name="password" placeholder="Password" required
-                   style="flex:1 1 120px; min-width:120px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-            <select name="college" required style="flex:1 1 140px; min-width:140px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px; background:#fff;">
-                <option value="">Select College</option>
-                {% for college in colleges %}
-                    <option value="{{ college.id }}">{{ college.name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" style="flex:0 0 auto; background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer; font-size:15px; font-weight:500; transition:background 0.2s;">Add SBO User</button>
+    </nav>
+    <main class="main-content">
+    <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+        <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:2vw; margin-bottom:1.2vw; width:100%;">
+            <h1 style="margin:0 auto; font-size:2.5vw; min-width:220px; color:#e6007a; font-weight:900; letter-spacing:1px; text-align:center; width:100%">Event Attendance Admin <span style='font-size:1.2em;'>🗓️</span></h1>
         </div>
-    </form>
-
-    <hr style="margin:18px 0;">
-
-    <!-- Events Section -->
-
-
-    <h2 style="margin-bottom:10px;">Add Events</h2>
-    <form method="post" action="{% url 'create_event' %}" style="margin-bottom:12px;">
-        {% csrf_token %}
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;">
-            <input type="text" name="event_name" placeholder="Event Name" required
-                   style="flex:1 1 120px; min-width:120px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-            <input type="datetime-local" name="event_date" required
-                   style="flex:1 1 160px; min-width:160px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-            {% if user.is_superuser or user.username == 'sbo_admin' %}
-                <select name="college" style="flex:1 1 140px; min-width:140px; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px; background:#fff;">
-                    <option value="">General (All Colleges)</option>
-                    {% for college in colleges %}
-                        <option value="{{ college.id }}">{{ college.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-        </div>
-        <button type="submit" style="width:100%; background:#e6007a; color:#fff; border:none; padding:10px 0; border-radius:6px; cursor:pointer; font-size:16px; font-weight:500; transition:background 0.2s;">Add Event</button>
-    </form>
-
-    <hr style="margin:18px 0;">
-
-    <!-- Students Section -->
-    <h2 style="margin-bottom:10px;">Add Students</h2>
-    <form method="post" action="{% url 'add_student' %}" style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
-        {% csrf_token %}
-        <input type="number" name="barcode_id" placeholder="ID Number" required
-               style="flex:1; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-        <input type="text" name="student_name" placeholder="Student Name" required pattern="^[A-Za-z\s]+$" title="Only letters and spaces allowed"
-               style="flex:1; padding:7px 10px; border-radius:5px; border:1px solid #ccc; font-size:15px;">
-        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:15px;">Add Student</button>
-    </form>
-
+        <div class="dashboard-cards-row" style="display:flex; flex-direction:row; gap:1.5vw; justify-content:flex-start; align-items:flex-start; width:100%; max-width:1300px;">
+            <style>
+                .dashboard-card {
+                    border-radius: 14px;
+                    box-shadow: 0 2px 12px #e6007a11;
+                    padding: 0.01vw 0.5vw 0.01vw 0.5vw;
+                    margin-bottom: 0.03vw;
+                    transition: box-shadow 0.18s, border 0.18s;
+                    border: 2px solid transparent;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .dashboard-card.sbo-user {
+                    background: #ffe5ec;
+                }
+                .dashboard-card.sbo-user:hover {
+                    border: 2px solid #ffb3c6;
+                    box-shadow: 0 4px 18px #ffb3c655;
+                }
+                .dashboard-card.events {
+                    background: #eaffea;
+                }
+                .dashboard-card.events:hover {
+                    border: 2px solid #b6fcb6;
+                    box-shadow: 0 4px 18px #b6fcb655;
+                }
+                .dashboard-card.students {
+                    background: #e6f0ff;
+                }
+                .dashboard-card.students:hover {
+                    border: 2px solid #b3d1ff;
+                    box-shadow: 0 4px 18px #b3d1ff55;
+                }
+                .dashboard-card h2 {
+                    margin-bottom: 8px;
+                    color: #b1005c;
+                    font-weight: 800;
+                    font-size: 1.15rem;
+                }
+                .dashboard-form-row {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto;
+                    align-items: center;
+                    gap: 0.25vw;
+                    width: 100%;
+                }
+                .dashboard-form-row > * {
+                    min-width: 0;
+                    margin-bottom: 0;
+                }
+                .dashboard-form-row button {
+                    min-width: 100px;
+                    margin-left: 0;
+                    height: 2em;
+                    padding: 0.35em 1em;
+                }
+                @media (max-width: 900px) {
+                    .dashboard-form-row {
+                        grid-template-columns: 1fr;
+                        gap: 1vw;
+                    }
+                    .dashboard-form-row button {
+                        margin-top: 0.7vw;
+                    }
+                }
+            </style>
+        <div class="dashboard-card sbo-user" style="max-width:340px; min-width:260px; margin-top:0; margin-bottom:0; width:100%; flex:1 1 0;">
+                <h2>Add SBO User</h2>
+                <form method="post" action="{% url 'add_sbo_user' %}">
+                    {% csrf_token %}
+                    <div class="dashboard-form-row">
+                        <input type="text" name="username" placeholder="Username" required class="dashboard-input">
+                        <input type="password" name="password" placeholder="Password" required class="dashboard-input">
+                        <select name="college" required class="dashboard-select">
+                            <option value="">Select College</option>
+                            {% for college in colleges %}
+                                <option value="{{ college.id }}">{{ college.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">Add SBO User</button>
+                    </div>
+                </form>
+            </div>
+        <div class="dashboard-card events" style="max-width:340px; min-width:260px; margin-bottom:0; width:100%; flex:1 1 0;">
+                <h2>Add Events</h2>
+                <form method="post" action="{% url 'create_event' %}">
+                    {% csrf_token %}
+                    <div class="dashboard-form-row">
+                        <input type="text" name="event_name" placeholder="Event Name" required class="dashboard-input">
+                        <input type="datetime-local" name="event_date" required class="dashboard-input">
+                        {% if user.is_superuser or user.username == 'sbo_admin' %}
+                            <select name="college" class="dashboard-select">
+                                <option value="">General (All Colleges)</option>
+                                {% for college in colleges %}
+                                    <option value="{{ college.id }}">{{ college.name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">Add Event</button>
+                    </div>
+                </form>
+            </div>
+        <div class="dashboard-card students" style="max-width:340px; min-width:260px; width:100%; flex:1 1 0;">
+                <h2>Add Students</h2>
+                <form method="post" action="{% url 'add_student' %}">
+                    {% csrf_token %}
+                    <div class="dashboard-form-row">
+                        <input type="number" name="barcode_id" placeholder="ID Number" required class="dashboard-input">
+                        <input type="text" name="student_name" placeholder="Student Name" required pattern="^[A-Za-z\s]+$" title="Only letters and spaces allowed" class="dashboard-input">
+                        <select name="college" required class="dashboard-select">
+                            <option value="">Select College</option>
+                            {% for college in colleges %}
+                                <option value="{{ college.id }}">{{ college.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">Add Student</button>
+                    </div>
+                </form>
+            </div>
+    </div>
+    <!-- Removed event sheet select and button -->
+    </main>
+</div>
 {% endblock %}

@@ -1,15 +1,134 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Edit SBO User</h2>
-<form method="post">
-    {% csrf_token %}
-    <input type="text" name="username" value="{{ edit_user.username }}" required style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-    <input type="password" name="password" placeholder="New Password (leave blank to keep current)" style="padding:6px; border-radius:4px; border:1px solid #ccc;">
-    <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Save Changes</button>
-</form>
-<a href="{% url 'sbo_users_list' %}">
-    <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer; margin-top:20px;">
-        Back to SBO Officers List
-    </button>
-</a>
+<style>
+    body {
+        background: linear-gradient(135deg, #ffe0f0 0%, #f7e6ff 100%);
+    }
+    .edit-sbo-card {
+        max-width: 420px;
+        margin: 60px auto 0 auto;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px #e6007a22;
+        padding: 38px 32px 30px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        position: relative;
+    }
+    .edit-sbo-title {
+        text-align: center;
+        color: #e6007a;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 32px;
+        letter-spacing: 1px;
+    }
+    .edit-sbo-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .edit-sbo-fields-group {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        width: 100%;
+    }
+    .edit-sbo-field {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+    .edit-sbo-label {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #b1005c;
+        margin-bottom: 2px;
+        letter-spacing: 0.2px;
+    }
+    .edit-sbo-input {
+        width: 260px;
+        padding: 11px 12px;
+        padding-right: 28px;
+        border-radius: 7px;
+        border: 1.5px solid #e0b3cc;
+        font-size: 1.08rem;
+        background: #fff8fc;
+        transition: border 0.2s;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    .edit-sbo-input:focus {
+        border: 1.5px solid #e6007a;
+        outline: none;
+        background: #fff0fa;
+    }
+    .edit-sbo-actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-top: 38px;
+    }
+    .edit-sbo-btn {
+        width: 170px;
+        height: 46px;
+        border-radius: 7px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .edit-sbo-btn.back {
+        min-width: 230px;
+    }
+    .edit-sbo-btn.save {
+        background: #e6007a;
+        color: #fff;
+        border: none;
+    }
+    .edit-sbo-btn.save:hover {
+        background: #b1005c;
+    }
+    .edit-sbo-btn.back {
+        background: #fff;
+        color: #e6007a;
+        border: 2px solid #e6007a;
+        margin-top: 24px;
+    }
+    .edit-sbo-btn.back:hover {
+        background: #ffe0f0;
+        color: #b1005c;
+        border: 2px solid #b1005c;
+    }
+</style>
+
+<div class="edit-sbo-card">
+    <div class="edit-sbo-title">Edit SBO User</div>
+    <form method="post" class="edit-sbo-form">
+        {% csrf_token %}
+        <div class="edit-sbo-fields-group">
+            <div class="edit-sbo-field">
+                <label for="username" class="edit-sbo-label">Username</label>
+                <input type="text" id="username" name="username" value="{{ edit_user.username }}" required class="edit-sbo-input">
+            </div>
+            <div class="edit-sbo-field">
+                <label for="password" class="edit-sbo-label">New Password</label>
+                <input type="password" id="password" name="password" placeholder="Leave blank to keep current" class="edit-sbo-input">
+            </div>
+        </div>
+        <div class="edit-sbo-actions">
+            <button type="submit" class="edit-sbo-btn save">Save Changes</button>
+            <form action="{% url 'sbo_users_list' %}" method="get" style="margin:0;">
+                <button type="submit" class="edit-sbo-btn back">Back to SBO Officers</button>
+            </form>
+        </div>
+    </form>
+</div>
 {% endblock %}

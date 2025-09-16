@@ -2,6 +2,13 @@
 
 {% block content %}
 <style>
+body.sbo-bg {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #fff0fa 0%, #e6f0ff 60%, #f7e6ff 100%);
+    background-attachment: fixed;
+    position: relative;
+    z-index: 0;
+}
 .sbo-dashboard-container {
     border: 2.5px solid #e6007a;
     border-radius: 32px;
@@ -10,15 +17,27 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 8px 32px 0 rgba(230,0,122,0.10), 0 1.5px 8px 0 #e6007a22;
+    /* Add a thick white outline using box-shadow */
+    box-shadow:
+        0 0 0 8px #fff, /* strong white outline */
+        0 8px 32px 0 rgba(230,0,122,0.10),
+        0 1.5px 8px 0 #e6007a22;
     margin-top: 40px;
 }
 .sbo-dashboard-container h1 {
-    color: #d1006f;
-    margin-bottom: 48px;
-    font-size: 2.5rem;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 12px #fff4;
+    color: #e6007a;
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    text-shadow: none;
+    letter-spacing: normal;
+    border-radius: 0;
+    text-align: center;
+    display: block;
 }
 .sbo-options-row {
     display: flex;
@@ -52,11 +71,27 @@
     position: relative;
     overflow: hidden;
 }
-.sbo-option:hover {
-    background: #ffe6f2;
+.sbo-option.scanner:hover {
+    background: #ffe5ec;
     color: #e6007a;
-    border-color: #d1006f;
+    border-color: #e6007a;
     box-shadow: 0 8px 32px 0 #e6007a33, 0 2px 16px 0 #e6007a22;
+    transform: translateY(-8px) scale(1.05) rotate(-1deg);
+    cursor: pointer;
+}
+.sbo-option.event:hover {
+    background: #eaffea;
+    color: #009a2f;
+    border-color: #009a2f;
+    box-shadow: 0 8px 32px 0 #009a2f33, 0 2px 16px 0 #009a2f22;
+    transform: translateY(-8px) scale(1.05) rotate(-1deg);
+    cursor: pointer;
+}
+.sbo-option.sheet:hover {
+    background: #e6f0ff;
+    color: #0057b1;
+    border-color: #0057b1;
+    box-shadow: 0 8px 32px 0 #0057b133, 0 2px 16px 0 #0057b122;
     transform: translateY(-8px) scale(1.05) rotate(-1deg);
     cursor: pointer;
 }
@@ -91,34 +126,74 @@
     }
 }
 </style>
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh;">
+<style>
+.system-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(90deg, #e6007a 0%, #0057b1 100%);
+    padding: 12px 36px 10px 36px;
+    border-radius: 16px;
+    margin: 0 0 14px 0;
+    box-shadow: 0 4px 18px 0 #e6007a22, 0 1.5px 8px 0 #0057b122;
+    text-align: center;
+    letter-spacing: 1.2px;
+    border: none;
+    display: inline-block;
+    line-height: 1.1;
+    user-select: none;
+    transition: box-shadow 0.2s;
+}
+.sbo-dashboard-container h1:not(.system-title) {
+    color: #e6007a;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    background: none;
+    border: none;
+    padding: 0 2px;
+    box-shadow: none;
+    text-shadow: 0 1px 4px #fff8, 0 0 2px #fff;
+    letter-spacing: 0.5px;
+    border-radius: 0;
+    text-align: center;
+    display: block;
+    line-height: 1.2;
+}
+</style>
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; z-index: 1; position: relative;">
     <div class="sbo-dashboard-container">
-        {% if assigned_college %}
-            <h1>Welcome, SBO from {{ assigned_college }}!</h1>
-        {% else %}
-            <h1>Welcome, SBO Officer!</h1>
-        {% endif %}
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 30px;">
+            <div style="background: linear-gradient(90deg, #e6007a 0%, #0057b1 100%); color: #fff; font-size: 2.3rem; font-weight: 800; padding: 14px 38px 12px 38px; border-radius: 18px; box-shadow: 0 4px 18px 0 #e6007a22, 0 1.5px 8px 0 #0057b122; text-align: center; letter-spacing: 1.2px; border: none; display: inline-block; line-height: 1.1; user-select: none; margin-bottom: 12px;">
+                Event Attendance System
+            </div>
+            {% if assigned_college %}
+                <div style="color: #e6007a; font-size: 1.1rem; font-weight: 600; text-align: center; display: inline-block; margin-top: 4px;">
+                    {{ assigned_college }}
+                </div>
+            {% endif %}
+        </div>
         <div class="sbo-options-row">
             <a href="{% url 'barcode_scanner' %}" style="text-decoration: none;">
-                <div class="sbo-option">
+                <div class="sbo-option scanner">
                     Barcode Scanner
                 </div>
             </a>
             {% if user.is_superuser or user.username == 'sbo_admin' %}
                 <a href="{% url 'add_event' %}" style="text-decoration: none;">
-                    <div class="sbo-option">
+                    <div class="sbo-option event">
                         Add Event
                     </div>
                 </a>
             {% else %}
                 <a href="{% url 'create_event' %}" style="text-decoration: none;">
-                    <div class="sbo-option">
+                    <div class="sbo-option event">
                         Create Event
                     </div>
                 </a>
             {% endif %}
             <a href="{% url 'view_attendance_sheet' %}" style="text-decoration: none;">
-                <div class="sbo-option">
+                <div class="sbo-option sheet">
                     View Attendance Sheet
                 </div>
             </a>
@@ -129,4 +204,10 @@
         </form>
     </div>
 </div>
+<script>
+// Add a class to body for the stylish background
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('sbo-bg');
+});
+</script>
 {% endblock %}

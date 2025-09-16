@@ -57,33 +57,33 @@
 		}
 	</style>
 	<h2 class="accent-title">Create Event</h2>
-	<form method="post" style="display: flex; gap: 18px; align-items: center; justify-content: center;">
+	<form method="post" style="display: flex; flex-direction: column; gap: 18px; width: 100%; align-items: center;">
 		{% csrf_token %}
-		<div style="margin-bottom: 18px;">
-			<label for="id_event_name" style="font-weight: bold; color: #d1006f;">Event Name:</label><br>
+		<div style="width: 100%; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start;">
+			<label for="id_event_name" style="font-weight: bold; color: #d1006f; margin-bottom: 6px;">Event Name:</label>
 			{{ form.event_name }}
 		</div>
-		<div style="margin-bottom: 18px;">
-			<label for="id_event_date" style="font-weight: bold; color: #d1006f;">Event Date:</label><br>
+		<div style="width: 100%; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start;">
+			<label for="id_event_date" style="font-weight: bold; color: #d1006f; margin-bottom: 6px;">Event Date:</label>
 			{{ form.event_date }}
 		</div>
 		{% if user.is_superuser or user.username == 'sbo_admin' %}
-			<div style="margin-bottom: 18px;">
-				<label for="id_college" style="font-weight: bold; color: #d1006f;">College:</label><br>
+			<div style="width: 100%; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start;">
+				<label for="id_college" style="font-weight: bold; color: #d1006f; margin-bottom: 6px;">College:</label>
 				{{ form.college }}
 			</div>
 		{% else %}
-			<div style="margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
-				<label style="font-weight: bold; color: #d1006f; margin-bottom: 4px;">College:</label>
+			<div style="width: 100%; margin-bottom: 0; display: flex; flex-direction: column; align-items: flex-start; min-width: 160px;">
+				<label style="font-weight: bold; color: #d1006f; margin-bottom: 6px;">College:</label>
 				<span style="color: #333; margin-left: 0;">{{ user.sboprofile.college.name }}</span>
 				<input type="hidden" name="college" value="{{ user.sboprofile.college.id }}">
 			</div>
 		{% endif %}
-		<button type="submit" class="back-btn" style="margin-left: 18px;">Create Event</button>
+		<div style="display: flex; flex-direction: row; gap: 18px; justify-content: center; align-items: center; margin-top: 10px; width: 100%;">
+			<a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
+			<button type="submit" class="back-btn">Create Event</button>
+		</div>
 	</form>
-	<div style="width: 100%; display: flex; justify-content: center; margin-top: 40px;">
-		<a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
-	</div>
 	{% if messages %}
 		<ul style="margin-top: 24px; color: #d1006f;">
 			{% for message in messages %}

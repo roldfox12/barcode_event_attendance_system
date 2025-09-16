@@ -1,22 +1,128 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Edit Event</h2>
-<form method="post" style="max-width:400px; margin:auto;">
-    {% csrf_token %}
-    <div style="margin-bottom:16px;">
-        <label for="name" style="display:block; margin-bottom:6px;">Event Name</label>
-        <input type="text" id="name" name="name" value="{{ event.name }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-    </div>
-    <div style="margin-bottom:16px;">
-        <label for="date" style="display:block; margin-bottom:6px;">Event Date</label>
-        <input type="datetime-local" id="date" name="date" value="{{ event.date|date:'Y-m-d\\TH:i' }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-    </div>
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Save Changes</button>
-        <a href="{% url 'events_list' %}">
-            <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer;">Cancel</button>
-        </a>
-    </div>
-    
-</form>
+<style>
+    body {
+        background: linear-gradient(135deg, #ffe0f0 0%, #f7e6ff 100%);
+    }
+    .edit-event-card {
+        max-width: 420px;
+        margin: 60px auto 0 auto;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px #e6007a22;
+        padding: 38px 32px 30px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        position: relative;
+    }
+    .edit-event-title {
+        text-align: center;
+        color: #e6007a;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 32px;
+        letter-spacing: 1px;
+    }
+    .edit-event-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .edit-event-fields-group {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        width: 100%;
+    }
+    .edit-event-field {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+    .edit-event-label {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #b1005c;
+        margin-bottom: 2px;
+        letter-spacing: 0.2px;
+    }
+    .edit-event-input {
+        width: 260px;
+        padding: 11px 12px 11px 12px;
+        padding-right: 28px;
+        border-radius: 7px;
+        border: 1.5px solid #e0b3cc;
+        font-size: 1.08rem;
+        background: #fff8fc;
+        transition: border 0.2s;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    .edit-event-input:focus {
+        border: 1.5px solid #e6007a;
+        outline: none;
+        background: #fff0fa;
+    }
+    .edit-event-actions {
+        display: flex;
+        gap: 18px;
+        justify-content: center;
+        margin-top: 38px;
+    }
+    .edit-event-btn {
+        width: 170px;
+        height: 46px;
+        border-radius: 7px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .edit-event-btn.save {
+        background: #e6007a;
+        color: #fff;
+        border: none;
+    }
+    .edit-event-btn.save:hover {
+        background: #b1005c;
+    }
+    .edit-event-btn.cancel {
+        background: #fff;
+        color: #e6007a;
+        border: 2px solid #e6007a;
+    }
+    .edit-event-btn.cancel:hover {
+        background: #ffe0f0;
+        color: #b1005c;
+        border: 2px solid #b1005c;
+    }
+</style>
+
+<div class="edit-event-card">
+    <div class="edit-event-title">Edit Event</div>
+    <form method="post" class="edit-event-form">
+        {% csrf_token %}
+        <div class="edit-event-fields-group">
+            <div class="edit-event-field">
+                <label for="name" class="edit-event-label">Event Name</label>
+                <input type="text" id="name" name="name" value="{{ event.name }}" required class="edit-event-input">
+            </div>
+            <div class="edit-event-field">
+                <label for="date" class="edit-event-label">Event Date</label>
+                <input type="datetime-local" id="date" name="date" value="{{ event.date|date:'Y-m-d\\TH:i' }}" required class="edit-event-input">
+            </div>
+        </div>
+        <div class="edit-event-actions">
+            <button type="submit" class="edit-event-btn save">Save Changes</button>
+            <a href="{% url 'events_list' %}" style="text-decoration:none;">
+                <button type="button" class="edit-event-btn cancel">Cancel</button>
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}

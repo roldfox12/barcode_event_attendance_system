@@ -1,21 +1,142 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Edit Student</h2>
-<form method="post" style="max-width:400px; margin:auto;">
-    {% csrf_token %}
-    <div style="margin-bottom:16px;">
-        <label for="barcode_id" style="display:block; margin-bottom:6px;">ID Number</label>
-        <input type="text" id="barcode_id" name="barcode_id" value="{{ student.barcode_id }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-    </div>
-    <div style="margin-bottom:16px;">
-        <label for="student_name" style="display:block; margin-bottom:6px;">Student Name</label>
-        <input type="text" id="student_name" name="student_name" value="{{ student.name }}" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-    </div>
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-        <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Save Changes</button>
-        <a href="{% url 'students_list' %}">
-            <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer;">Cancel</button>
-        </a>
-    </div>
-</form>
+<style>
+    body {
+        background: linear-gradient(135deg, #ffe0f0 0%, #f7e6ff 100%);
+    }
+    .edit-student-card {
+        max-width: 420px;
+        margin: 60px auto 0 auto;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px #e6007a22;
+        padding: 38px 32px 30px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        position: relative;
+    }
+    .edit-student-title {
+        text-align: center;
+        color: #e6007a;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 32px;
+        letter-spacing: 1px;
+    }
+    .edit-student-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .edit-student-fields-group {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        width: 100%;
+    }
+    .edit-student-field {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+    }
+    .edit-student-label {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #b1005c;
+        margin-bottom: 2px;
+        letter-spacing: 0.2px;
+    }
+    .edit-student-input, .edit-student-select {
+        padding: 11px 12px;
+        border-radius: 7px;
+        border: 1.5px solid #e0b3cc;
+        font-size: 1.08rem;
+        background: #fff8fc;
+        transition: border 0.2s;
+    }
+    .edit-student-input {
+        width: 260px;
+        padding-right: 28px;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    .edit-student-select {
+        width: 100%;
+    }
+    .edit-student-input:focus, .edit-student-select:focus {
+        border: 1.5px solid #e6007a;
+        outline: none;
+        background: #fff0fa;
+    }
+    .edit-student-actions {
+        display: flex;
+        gap: 18px;
+        justify-content: center;
+        margin-top: 38px;
+    }
+    .edit-student-btn {
+        width: 170px;
+        height: 46px;
+        border-radius: 7px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .edit-student-btn.save {
+        background: #e6007a;
+        color: #fff;
+        border: none;
+    }
+    .edit-student-btn.save:hover {
+        background: #b1005c;
+    }
+    .edit-student-btn.cancel {
+        background: #fff;
+        color: #e6007a;
+        border: 2px solid #e6007a;
+    }
+    .edit-student-btn.cancel:hover {
+        background: #ffe0f0;
+        color: #b1005c;
+        border: 2px solid #b1005c;
+    }
+</style>
+
+<div class="edit-student-card">
+    <div class="edit-student-title">Edit Student</div>
+    <form method="post" class="edit-student-form">
+        {% csrf_token %}
+        <div class="edit-student-fields-group">
+            <div class="edit-student-field">
+                <label for="barcode_id" class="edit-student-label">ID Number</label>
+                <input type="text" id="barcode_id" name="barcode_id" value="{{ student.barcode_id }}" required class="edit-student-input">
+            </div>
+            <div class="edit-student-field">
+                <label for="student_name" class="edit-student-label">Student Name</label>
+                <input type="text" id="student_name" name="student_name" value="{{ student.name }}" required class="edit-student-input">
+            </div>
+            <div class="edit-student-field">
+                <label for="college" class="edit-student-label">College</label>
+                <select id="college" name="college" required class="edit-student-select">
+                    <option value="">Select College</option>
+                    {% for college in colleges %}
+                        <option value="{{ college.id }}" {% if student.college.id == college.id %}selected{% endif %}>{{ college.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="edit-student-actions">
+            <button type="submit" class="edit-student-btn save">Save Changes</button>
+            <a href="{% url 'students_list' %}" style="text-decoration:none;">
+                <button type="button" class="edit-student-btn cancel">Cancel</button>
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}

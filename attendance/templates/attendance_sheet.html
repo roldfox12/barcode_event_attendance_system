@@ -45,51 +45,26 @@
     background: #fff;
     color: #333;
 }
-.attendance-btn, .back-btn {
-    display: inline-block;
-    background: #fff;
-    color: #e6007a;
-    border: 2px solid #e6007a;
-    border-radius: 8px;
-    padding: 10px 26px;
-    font-size: 1rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px #e6007a11;
-    margin: 8px 8px 0 0;
-}
-.attendance-btn:hover, .back-btn:hover {
-    background: #e6007a;
-    color: #fff;
-    border-color: #d1006f;
-    box-shadow: 0 4px 16px #e6007a33;
-}
-.print-btn {
-    display: inline-block;
-    background: #e6007a;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 26px;
-    font-size: 1rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px #e6007a22;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-    margin-right: 12px;
-}
-.print-btn:hover {
-    background: #d1006f;
-    box-shadow: 0 4px 16px #e6007a33;
-    transform: translateY(-2px) scale(1.04);
-}
+/* Button styles now use global .btn, .btn-primary, .btn-secondary */
 .action-row {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 18px;
+    gap: 24px;
     margin-top: 18px;
+    width: 100%;
+}
+.action-row a, .action-row .print-btn {
+    min-width: 110px;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    font-size: 0.98rem;
+    display: inline-block;
+    height: 36px;
+    line-height: 36px;
+    vertical-align: middle;
 }
 </style>
 <div class="attendance-sheet">
@@ -113,8 +88,11 @@
                     <td>{{ attendance.sign_out_time|date:"h:i A" }}</td>
                     {% if is_sbo_admin %}
                     <td>
-                        <a href="{% url 'edit_attendance' attendance.id %}" class="attendance-btn">Edit</a>
-                        <a href="{% url 'delete_attendance' attendance.id %}" class="attendance-btn" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
+                        <a href="{% url 'edit_attendance' attendance.id %}" class="btn btn-secondary" style="min-height: 16px; min-width: 8px; font-size: .90rem; text-align: center; display: inline-block; vertical-align: middle;">Edit</a>
+                        <form method="post" action="{% url 'delete_attendance' attendance.id %}" style="display:inline; margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary" style="min-height: 8px; min-width: 8px; font-size: 0.90rem; text-align: center; display: inline-block; vertical-align: middle;">Delete</button>
+                        </form>
                     </td>
                     {% endif %}
                 </tr>
@@ -123,11 +101,11 @@
     </table>
     <div class="action-row">
         {% if is_sbo_admin %}
-            <a href="{% url 'dashboard' %}" class="back-btn">Back to Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
         {% else %}
-            <a href="{% url 'view_attendance_sheet' %}" class="back-btn">Back</a>
+            <a href="{% url 'view_attendance_sheet' %}" class="btn btn-secondary">Back</a>
         {% endif %}
-        <a href="{% url 'print_attendance_sheet' event.id %}" class="print-btn" target="_blank">Print attendance sheet</a>
+    <a href="{% url 'print_attendance_sheet' event.id %}" class="btn btn-primary" target="_blank">Print attendance sheet</a>
     </div>
 </div>
 {% endblock %}

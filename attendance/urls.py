@@ -1,3 +1,5 @@
+
+
 from django.urls import path
 from . import views
 
@@ -5,6 +7,7 @@ urlpatterns = [
     path('edit_event/<int:event_id>/', views.edit_event, name='edit_event'),
     path('create_event/', views.create_event, name='create_event'),
     path('delete_event/<int:event_id>/', views.delete_event, name='delete_event'),
+    path('delete_all_events/', views.delete_all_events, name='delete_all_events'),
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('', views.index, name='index'),
@@ -20,11 +23,13 @@ urlpatterns = [
     path('add_sbo_user/', views.add_sbo_user, name='add_sbo_user'),
     path('edit_sbo_user/<int:user_id>/', views.edit_sbo_user, name='edit_sbo_user'),
     path('delete_sbo_user/<int:user_id>/', views.delete_sbo_user, name='delete_sbo_user'),
+    path('delete_all_sbo_users/', views.delete_all_sbo_users, name='delete_all_sbo_users'),
     # Student management
     path('edit_student/<int:student_id>/', views.edit_student, name='edit_student'),
     path('delete_student/<int:student_id>/', views.delete_student, name='delete_student'),
     path('add_student/', views.add_student, name='add_student'),
     path('students/', views.students_list, name='students_list'),
+    path('delete_all_students/', views.delete_all_students, name='delete_all_students'),
     path('manual_sign/', views.manual_sign, name='manual_sign'),  
     path('colleges/add/', views.add_college, name='add_college'),
     path('barcode-scanner/', views.barcode_scanner, name='barcode_scanner'),

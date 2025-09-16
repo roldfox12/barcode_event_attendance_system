@@ -1,24 +1,44 @@
-from asyncio import events
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-
 import attendance
 from .models import Event, Attendee, Attendance, College, SBOProfile
 from .forms import AddSBOUserForm
 from .forms_event import AddEventForm
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Q, Max, F, Value, DateTimeField
 from django.utils import timezone
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import authenticate, login, get_user_model
 from django.db import IntegrityError
-from django.db.models import Q, Max, F, Value, DateTimeField
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_all_sbo_users(request):
+    User = get_user_model()
+    if request.method == 'POST':
+        User.objects.filter(is_superuser=False, is_staff=False).delete()
+        messages.success(request, "All SBO users have been deleted.")
+    return redirect('sbo_users_list')
 from django.db.models.functions import Greatest
 from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
 import datetime
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.username == 'sbo_admin')
+def delete_all_students(request):
+    if request.method == 'POST':
+        Attendee.objects.all().delete()
+        messages.success(request, "All students have been deleted.")
+    return redirect('students_list')
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.username == 'sbo_admin')
+def delete_all_events(request):
+    if request.method == 'POST':
+        Event.objects.all().delete()
+        messages.success(request, "All events have been deleted.")
+    return redirect('events_list')
 
 def login_view(request):
     if request.method == 'POST':
@@ -229,11 +249,13 @@ def add_student(request):
     if request.method == 'POST':
         barcode_id = request.POST.get('barcode_id')
         name = request.POST.get('student_name')
+        college_id = request.POST.get('college')
+        college = College.objects.get(id=college_id) if college_id else None
         if Attendee.objects.filter(barcode_id=barcode_id, name=name):
             messages.error(request, "That student is already registered.")
         else:
             try:
-                Attendee.objects.create(barcode_id=barcode_id, name=name)
+                Attendee.objects.create(barcode_id=barcode_id, name=name, college=college)
                 messages.success(request, "Student added successfully!")
             except IntegrityError:
                 messages.error(request, "That student is already registered.")
@@ -400,12 +422,19 @@ def delete_sbo_user(request, user_id):
 @user_passes_test(lambda u: u.is_superuser)
 def edit_student(request, student_id):
     student = Attendee.objects.get(id=student_id)
+    colleges = College.objects.all()
     if request.method == 'POST':
-        student.barcode_id = request.POST.get('barcode_id')
-        student.name = request.POST.get('student_name')
-        student.save()
-        messages.success(request, "Student updated successfully.")
-        return redirect('students_list')
+        barcode_id = request.POST.get('barcode_id')
+        student_name = request.POST.get('student_name')
+        college_id = request.POST.get('college')
+        if barcode_id and student_name and college_id:
+            student.barcode_id = barcode_id
+            student.name = student_name
+            student.college_id = college_id
+            student.save()
+            messages.success(request, 'Student updated successfully!')
+            return redirect('students_list')
+    return render(request, 'edit_student.html', {'student': student, 'colleges': colleges})
 
     return render(request, 'edit_student.html', {'student': student})
 

@@ -1,3 +1,32 @@
+/* Minimal title styles with only black outline */
+.system-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 8px 0;
+    background: none !important;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    text-shadow: none;
+    letter-spacing: normal;
+    border-radius: 0;
+    text-align: center;
+    display: block;
+}
+.sbo-dashboard-container h1 {
+    color: #e6007a;
+    margin-bottom: 10px;
+    font-size: 1.35rem;
+    letter-spacing: 1px;
+    font-weight: 600;
+    text-shadow: none;
+    -webkit-text-stroke: 0;
+    padding: 0 2px;
+    border-radius: 0;
+    background: none !important;
+    display: block;
+}
 body {
     font-family: 'Inter', Arial, Helvetica, sans-serif !important;
     background: #ffe3f0 !important;
