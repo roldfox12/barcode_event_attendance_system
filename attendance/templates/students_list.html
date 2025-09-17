@@ -9,6 +9,14 @@
 <!-- Search Form with Delete All Button (side by side) -->
 <div style="margin-bottom: 20px; display: flex; gap: 8px; align-items: center;">
     <form method="get" action="" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+        <select name="college" onchange="this.form.submit()" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <option value="">All Colleges</option>
+            {% for college in colleges %}
+                <option value="{{ college.id }}" {% if college.id|stringformat:"s" == selected_college %}selected{% endif %}>
+                    {{ college.name }}
+                </option>
+            {% endfor %}
+        </select>
         <input type="text" name="q" placeholder="Search by ID or name..." value="{{ request.GET.q|default_if_none:'' }}" style="padding:8px; border-radius:6px; border:1px solid #e6007a; width: 250px;">
         <button type="submit" style="background:#e6007a; color:#fff; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Search</button>
         {% if request.GET.q %}
@@ -60,8 +68,8 @@
         {% endfor %}
     </tbody>
 </table>
-<a href="{% url 'dashboard' %}">
-    <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:8px 18px; border-radius:6px; cursor:pointer; margin-top:20px;">
+<a href="{% url 'dashboard' %}" style="position:fixed; bottom:30px; right:30px; z-index:1000;">
+    <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:12px 24px; border-radius:50px; cursor:pointer; box-shadow:0 2px 8px #e6007a33; font-size:1.1rem; font-weight:600;">
         Back to Dashboard
     </button>
 </a>

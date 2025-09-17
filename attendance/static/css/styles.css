@@ -29,7 +29,13 @@
 }
 body {
     font-family: 'Inter', Arial, Helvetica, sans-serif !important;
-    background: #ffe3f0 !important;
+    background-color: #ffe3f0 !important;
+    background-image: url('/static/img/imcclogo.jpg');    
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: cover;
+    background-size: cover;
 }
 
 h1, h2, h3, h4, h5, h6, button, input, select, label, li, p, a, form {

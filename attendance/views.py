@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 import attendance
@@ -343,22 +342,36 @@ def scan_barcode(request):
 @login_required
 def students_list(request):
     query = request.GET.get('q', '')
+    selected_college = request.GET.get('college', '')
+    colleges = College.objects.all()
+    students = Attendee.objects.all()
+    if selected_college:
+        students = students.filter(college__id=selected_college)
     if query:
-        students = Attendee.objects.filter(
+        students = students.filter(
             Q(barcode_id__icontains=query) | Q(name__icontains=query)
         )
-    else:
-        students = Attendee.objects.all()
-    return render(request, 'students_list.html', {'students': students})
+    return render(request, 'students_list.html', {
+        'students': students,
+        'colleges': colleges,
+        'selected_college': selected_college,
+    })
 
 @login_required
 def events_list(request):
     query = request.GET.get('q', '')
+    selected_college = request.GET.get('college', '')
+    colleges = College.objects.all()
+    events = Event.objects.all()
+    if selected_college:
+        events = events.filter(college__id=selected_college)
     if query:
-        events = Event.objects.filter(name__icontains=query)
-    else:
-        events = Event.objects.all()
-    return render(request, 'events_list.html', {'events': events})
+        events = events.filter(name__icontains=query)
+    return render(request, 'events_list.html', {
+        'events': events,
+        'colleges': colleges,
+        'selected_college': selected_college,
+    })
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
