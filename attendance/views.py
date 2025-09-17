@@ -592,6 +592,23 @@ def barcode_scanner(request):
         event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
         try:
             attendee = Attendee.objects.get(barcode_id=barcode_id)
+            # Restrict SBO users to only scan students from their own college
+            if not (request.user.is_superuser or request.user.username == 'sbo_admin'):
+                try:
+                    user_college = request.user.sboprofile.college
+                except Exception:
+                    user_college = None
+                if attendee.college != user_college:
+                    error_message = "You can only scan students from your assigned college."
+                    barcode_id = ''
+                    return render(request, 'barcode_scanner.html', {
+                        'events': events,
+                        'success_message': success_message,
+                        'error_message': error_message,
+                        'selected_event_id': selected_event_id,
+                        'barcode_id': barcode_id,
+                        'action': action
+                    })
             # Check if event has a college restriction
             if event and event.college and attendee.college != event.college:
                 error_message = "Student doesn't belong to this college."

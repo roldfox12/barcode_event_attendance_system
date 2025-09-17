@@ -99,13 +99,20 @@
             {% endfor %}
         </tbody>
     </table>
-    <div class="action-row">
+    <!-- Floating Action Buttons -->
+    <div style="position:fixed; bottom:30px; right:30px; z-index:1000; display:flex; flex-direction:column; gap:16px; align-items:flex-end;">
         {% if is_sbo_admin %}
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{% url 'dashboard' %}" style="text-decoration:none;">
+                <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:12px 24px; border-radius:50px; cursor:pointer; box-shadow:0 2px 8px #e6007a33; font-size:1.1rem; font-weight:600; margin-bottom:0;">Back to Dashboard</button>
+            </a>
         {% else %}
-            <a href="{% url 'view_attendance_sheet' %}" class="btn btn-secondary">Back</a>
+            <a href="{% url 'view_attendance_sheet' %}" style="text-decoration:none;">
+                <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:12px 24px; border-radius:50px; cursor:pointer; box-shadow:0 2px 8px #e6007a33; font-size:1.1rem; font-weight:600; margin-bottom:0;">Back</button>
+            </a>
         {% endif %}
-    <a href="{% url 'print_attendance_sheet' event.id %}" class="btn btn-primary" target="_blank">Print attendance sheet</a>
+        <a href="{% url 'print_attendance_sheet' event.id %}" target="_blank" style="text-decoration:none;">
+            <button type="button" style="background:#fff; color:#e6007a; border:2px solid #e6007a; padding:12px 24px; border-radius:50px; cursor:pointer; box-shadow:0 2px 8px #e6007a33; font-size:1.1rem; font-weight:600;">Print attendance sheet</button>
+        </a>
     </div>
 </div>
 {% endblock %}

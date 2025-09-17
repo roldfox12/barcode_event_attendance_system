@@ -51,12 +51,37 @@
     text-decoration: none;
     transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     box-shadow: 0 2px 8px #e6007a11;
-    margin: 18px 0 0 0;
+    margin: 0;
 }
 .back-btn:hover {
     background: #e6007a;
     color: #fff;
     border-color: #d1006f;
+    box-shadow: 0 4px 16px #e6007a33;
+}
+.floater-btn-group {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    gap: 14px;
+}
+.floater-btn-group .back-btn, .floater-btn-group .print-btn {
+    background: #e6007a;
+    color: #fff;
+    border: 2px solid #e6007a;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px #e6007a33;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.floater-btn-group .back-btn:hover, .floater-btn-group .print-btn:hover {
+    background: #fff;
+    color: #e6007a;
+    border-color: #e6007a;
     box-shadow: 0 4px 16px #e6007a33;
 }
 @media print {
@@ -72,6 +97,9 @@
         max-width: 100vw !important;
     }
     .print-btn, .back-btn {
+        display: none !important;
+    }
+    .floater-btn-group {
         display: none !important;
     }
 }
@@ -96,10 +124,10 @@
             {% endfor %}
         </tbody>
     </table>
-    <div style="display: flex; gap: 16px; margin-top: 18px;">
-        <a href="javascript:window.close()" class="back-btn">Back</a>
-        <button type="button" class="back-btn print-btn" onclick="window.print()">Print</button>
-    </div>
+</div>
+<div class="floater-btn-group">
+    <a href="javascript:window.close()" class="back-btn">Back</a>
+    <button type="button" class="back-btn print-btn" onclick="window.print()">Print</button>
 </div>
 <script>
 // Remove auto-print on load, use button instead
