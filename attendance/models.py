@@ -27,8 +27,10 @@ class Attendee(models.Model):
 class Attendance(models.Model):
     attendee = models.ForeignKey(Attendee, on_delete=models.CASCADE)
     event= models.ForeignKey(Event, on_delete=models.CASCADE)
-    sign_in_time = models.DateTimeField(null=True, blank=True)
-    sign_out_time = models.DateTimeField(null=True, blank=True)
+    sign_in_am = models.DateTimeField(null=True, blank=True)
+    sign_out_am = models.DateTimeField(null=True, blank=True)
+    sign_in_pm = models.DateTimeField(null=True, blank=True)
+    sign_out_pm = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.attendee.name} - {self.event.name}"

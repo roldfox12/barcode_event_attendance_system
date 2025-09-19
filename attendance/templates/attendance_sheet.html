@@ -73,8 +73,10 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Sign-In Time</th>
-                <th>Sign-Out Time</th>
+                <th>Sign-In AM</th>
+                <th>Sign-Out AM</th>
+                <th>Sign-In PM</th>
+                <th>Sign-Out PM</th>
                 {% if is_sbo_admin %}
                 <th>Actions</th>
                 {% endif %}
@@ -84,8 +86,10 @@
             {% for attendance in attendances %}
                 <tr>
                     <td>{{ attendance.attendee.name }}</td>
-                    <td>{{ attendance.sign_in_time|date:"h:i A" }}</td>
-                    <td>{{ attendance.sign_out_time|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_in_am|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_out_am|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_in_pm|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_out_pm|date:"h:i A" }}</td>
                     {% if is_sbo_admin %}
                     <td>
                         <a href="{% url 'edit_attendance' attendance.id %}" class="btn btn-secondary" style="min-height: 16px; min-width: 8px; font-size: .90rem; text-align: center; display: inline-block; vertical-align: middle;">Edit</a>

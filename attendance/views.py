@@ -116,15 +116,18 @@ def index(request):
             # Clear barcode_id after processing so you can scan the next one
             barcode_id = ''
 
-    # >>>> MOVE THIS BLOCK AFTER POST <<<<
+    # Update recent_attendance to use the new AM/PM fields
+    from django.db.models.functions import Greatest
     recent_attendance = Attendance.objects.annotate(
         latest_time=Greatest(
-            F('sign_in_time'),
-            F('sign_out_time'),
+            F('sign_in_am'),
+            F('sign_out_am'),
+            F('sign_in_pm'),
+            F('sign_out_pm'),
             output_field=DateTimeField()
         )
     ).filter(
-        Q(sign_in_time__isnull=False) | Q(sign_out_time__isnull=False)
+        Q(sign_in_am__isnull=False) | Q(sign_out_am__isnull=False) | Q(sign_in_pm__isnull=False) | Q(sign_out_pm__isnull=False)
     ).order_by('-latest_time')[:10]
 
 
@@ -588,7 +591,7 @@ def barcode_scanner(request):
     if request.method == 'POST':
         selected_event_id = request.POST.get('event_id')
         barcode_id = request.POST.get('barcode_id', '')
-        action = request.POST.get('action', 'sign_in')
+        action = request.POST.get('action', 'sign_in_am')
         event = get_object_or_404(Event, id=selected_event_id) if selected_event_id else None
         try:
             attendee = Attendee.objects.get(barcode_id=barcode_id)
@@ -614,33 +617,51 @@ def barcode_scanner(request):
                 error_message = "Student doesn't belong to this college."
             else:
                 attendance, created = Attendance.objects.get_or_create(attendee=attendee, event=event)
-                if action == 'sign_in':
-                    if attendance.sign_in_time:
-                        error_message = "ID has already been signed in."
+                now = timezone.now()
+                if action == 'sign_in_am':
+                    if attendance.sign_in_am:
+                        error_message = "ID has already been signed in (AM)."
                     else:
-                        attendance.sign_in_time = timezone.now()
-                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in to the event {event.name}"
+                        attendance.sign_in_am = now
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in (AM) to the event {event.name}"
                         attendance.save()
-                elif action == 'sign_out':
-                    if attendance.sign_out_time:
-                        error_message = "ID has already been signed out."
+                elif action == 'sign_out_am':
+                    if attendance.sign_out_am:
+                        error_message = "ID has already been signed out (AM)."
                     else:
-                        attendance.sign_out_time = timezone.now()
-                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out of the event {event.name}"
+                        attendance.sign_out_am = now
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out (AM) of the event {event.name}"
+                        attendance.save()
+                elif action == 'sign_in_pm':
+                    if attendance.sign_in_pm:
+                        error_message = "ID has already been signed in (PM)."
+                    else:
+                        attendance.sign_in_pm = now
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed in (PM) to the event {event.name}"
+                        attendance.save()
+                elif action == 'sign_out_pm':
+                    if attendance.sign_out_pm:
+                        error_message = "ID has already been signed out (PM)."
+                    else:
+                        attendance.sign_out_pm = now
+                        success_message = f"{attendee.barcode_id} {attendee.name} has successfully signed out (PM) of the event {event.name}"
                         attendance.save()
         except Attendee.DoesNotExist:
             error_message = "ID is not registered."
-        # Keep selected_event_id and action, but clear barcode_id for next scan
         barcode_id = ''
 
+    # Update recent_attendance to use the latest of the four timestamps
+    from django.db.models.functions import Greatest
     recent_attendance = Attendance.objects.annotate(
         latest_time=Greatest(
-            F('sign_in_time'),
-            F('sign_out_time'),
+            F('sign_in_am'),
+            F('sign_out_am'),
+            F('sign_in_pm'),
+            F('sign_out_pm'),
             output_field=DateTimeField()
         )
     ).filter(
-        Q(sign_in_time__isnull=False) | Q(sign_out_time__isnull=False)
+        Q(sign_in_am__isnull=False) | Q(sign_out_am__isnull=False) | Q(sign_in_pm__isnull=False) | Q(sign_out_pm__isnull=False)
     ).order_by('-latest_time')[:10]
 
     # Move the just-scanned attendance to the top if available

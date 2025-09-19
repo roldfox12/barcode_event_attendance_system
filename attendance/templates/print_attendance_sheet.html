@@ -110,16 +110,20 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Sign-In Time</th>
-                <th>Sign-Out Time</th>
+                <th>Sign-In AM</th>
+                <th>Sign-Out AM</th>
+                <th>Sign-In PM</th>
+                <th>Sign-Out PM</th>
             </tr>
         </thead>
         <tbody>
             {% for attendance in attendances %}
                 <tr>
                     <td>{{ attendance.attendee.name }}</td>
-                    <td>{{ attendance.sign_in_time|date:"h:i A" }}</td>
-                    <td>{{ attendance.sign_out_time|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_in_am|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_out_am|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_in_pm|date:"h:i A" }}</td>
+                    <td>{{ attendance.sign_out_pm|date:"h:i A" }}</td>
                 </tr>
             {% endfor %}
         </tbody>
