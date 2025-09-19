@@ -1,12 +1,22 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <style>
+.scanner-page-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 80vh;
+    gap: 48px;
+}
 .scanner-layout {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    position: relative;
+    z-index: 1;
 }
 .scanner-panel {
     background: #fff;
@@ -69,60 +79,166 @@
     border-color: #d1006f;
     box-shadow: 0 4px 16px #e6007a33;
 }
+.recent-logs-panel {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px #e6007a22;
+    padding: 32px 28px 24px 28px;
+    min-width: 320px;
+    max-width: 340px;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 1;
+}
+.recent-logs-title {
+    color: #e6007a;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+}
+.recent-logs-list {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 420px;
+    overflow-y: auto;
+}
+.recent-logs-list li {
+    border-bottom: 1px solid #f3c7e1;
+    padding: 10px 0 8px 0;
+    font-size: 1.01rem;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.recent-logs-list li:last-child {
+    border-bottom: none;
+}
+.recent-log-name {
+    font-weight: 600;
+    color: #d1006f;
+}
+.recent-log-event {
+    font-size: 0.97rem;
+    color: #555;
+}
+.recent-log-time {
+    font-size: 0.93rem;
+    color: #888;
+}
+.temp-submit-btn {
+    background: #e6007a;
+    color: #fff;
+    border: none;
+    padding: 10px 26px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #e6007a22;
+}
+.temp-submit-btn:hover {
+    background: #d1006f;
+}
+@media (max-width: 900px) {
+    .scanner-page-flex {
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+    .recent-logs-panel {
+        min-width: 0;
+        width: 100%;
+        max-width: 420px;
+    }
+}
 </style>
-<div class="scanner-layout">
-    <div class="scanner-panel">
-        {% if success_message %}
-        <div class="fancy-notif">
-            <span class="notif-icon">✔️</span>
-            <span>{{ success_message }}</span>
-        </div>
-        {% endif %}
-        {% if error_message %}
-        <div class="fancy-notif" style="border-left:6px solid #d1006f; background:linear-gradient(90deg,#ffe6f2 60%,#fde6f3 100%); color:#d1006f;">
-            <span class="notif-icon">&#9888;</span>
-            <span>{{ error_message }}</span>
-        </div>
-        {% endif %}
-                <style>
-                    .accent-title {
-                        color: #d1006f;
-                        font-size: 2.4rem;
-                        font-weight: 800;
-                        letter-spacing: 1px;
-                        margin-bottom: 32px;
-                        text-align: center;
-                        position: relative;
-                    }
-                    .accent-title::after {
-                        content: '';
-                        display: block;
-                        margin: 12px auto 0 auto;
-                        width: 60px;
-                        height: 4px;
-                        background: linear-gradient(90deg, #e6007a 0%, #d1006f 100%);
-                        border-radius: 2px;
-                        opacity: 0.18;
-                    }
-                </style>
-                <h1 class="accent-title">Barcode Scanner</h1>
-        <form method="post" action="{% url 'barcode_scanner' %}" style="display: flex; flex-direction: column; gap: 18px; width: 100%;">
-            {% csrf_token %}
-            <select name="event_id" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
-                <option value="">Select Event</option>
-                {% for event in events %}
-                    <option value="{{ event.id }}" {% if event.id|stringformat:'s' == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
-                {% endfor %}
-            </select>
-            <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;" value="{{ barcode_id }}">
-            <select name="action" style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
-                <option value="sign_in" {% if action == 'sign_in' %}selected{% endif %}>Sign In</option>
-                <option value="sign_out" {% if action == 'sign_out' %}selected{% endif %}>Sign Out</option>
-            </select>
-            <div class="form-actions">
-                <a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
+<div class="scanner-page-flex">
+    <div class="scanner-layout">
+        <div class="scanner-panel">
+            {% if success_message %}
+            <div class="fancy-notif">
+                <span class="notif-icon">✔️</span>
+                <span>{{ success_message }}</span>
             </div>
-        </form>
+            {% endif %}
+            {% if error_message %}
+            <div class="fancy-notif" style="border-left:6px solid #d1006f; background:linear-gradient(90deg,#ffe6f2 60%,#fde6f3 100%); color:#d1006f;">
+                <span class="notif-icon">&#9888;</span>
+                <span>{{ error_message }}</span>
+            </div>
+            {% endif %}
+            <style>
+                .accent-title {
+                    color: #d1006f;
+                    font-size: 2.4rem;
+                    font-weight: 800;
+                    letter-spacing: 1px;
+                    margin-bottom: 32px;
+                    text-align: center;
+                    position: relative;
+                }
+                .accent-title::after {
+                    content: '';
+                    display: block;
+                    margin: 12px auto 0 auto;
+                    width: 60px;
+                    height: 4px;
+                    background: linear-gradient(90deg, #e6007a 0%, #d1006f 100%);
+                    border-radius: 2px;
+                    opacity: 0.18;
+                }
+            </style>
+            <h1 class="accent-title">Barcode Scanner</h1>
+            <form method="post" action="{% url 'barcode_scanner' %}" style="display: flex; flex-direction: column; gap: 18px; width: 100%;">
+                {% csrf_token %}
+                <select name="event_id" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
+                    <option value="">Select Event</option>
+                    {% for event in events %}
+                        <option value="{{ event.id }}" {% if event.id|stringformat:'s' == selected_event_id %}selected{% endif %}>{{ event.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="barcode_id" id="barcodeScannerInput" placeholder="Scan Barcode" required style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;" value="{{ barcode_id }}">
+                <select name="action" style="padding:12px; border-radius:8px; border:1.5px solid #e6007a; font-size:16px;">
+                    <option value="sign_in" {% if action == 'sign_in' %}selected{% endif %}>Sign In</option>
+                    <option value="sign_out" {% if action == 'sign_out' %}selected{% endif %}>Sign Out</option>
+                </select>
+                <div class="form-actions">
+                    <a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
+                </div>
+                <button type="submit" class="temp-submit-btn">TEMP SUBMIT</button>
+            </form>
+        </div>
+    </div>
+    <div class="recent-logs-panel">
+        <div class="recent-logs-title">Recently Logged</div>
+        <ul class="recent-logs-list">
+            {% for log in recent_attendance %}
+            <li>
+                <span class="recent-log-name">{{ log.attendee.name }}</span>
+                <span class="recent-log-event">{{ log.event.name }}</span>
+                <span class="recent-log-time">
+                    {% if log.sign_in_time and log.sign_out_time %}
+                        In: {{ log.sign_in_time|date:"M d, h:i A" }}<br>
+                        Out: {{ log.sign_out_time|date:"M d, h:i A" }}
+                    {% elif log.sign_in_time %}
+                        In: {{ log.sign_in_time|date:"M d, h:i A" }}
+                    {% elif log.sign_out_time %}
+                        Out: {{ log.sign_out_time|date:"M d, h:i A" }}
+                    {% endif %}
+                </span>
+            </li>
+            {% empty %}
+            <li>No recent logs.</li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 <script>

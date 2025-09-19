@@ -10,6 +10,9 @@ from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.db import IntegrityError
+from django.db.models.functions import Greatest
+from django.contrib.auth.models import User
+import datetime
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -19,9 +22,6 @@ def delete_all_sbo_users(request):
         User.objects.filter(is_superuser=False, is_staff=False).delete()
         messages.success(request, "All SBO users have been deleted.")
     return redirect('sbo_users_list')
-from django.db.models.functions import Greatest
-from django.contrib.auth.models import User
-import datetime
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.username == 'sbo_admin')
@@ -633,13 +633,42 @@ def barcode_scanner(request):
         # Keep selected_event_id and action, but clear barcode_id for next scan
         barcode_id = ''
 
+    recent_attendance = Attendance.objects.annotate(
+        latest_time=Greatest(
+            F('sign_in_time'),
+            F('sign_out_time'),
+            output_field=DateTimeField()
+        )
+    ).filter(
+        Q(sign_in_time__isnull=False) | Q(sign_out_time__isnull=False)
+    ).order_by('-latest_time')[:10]
+
+    # Move the just-scanned attendance to the top if available
+    if request.method == 'POST' and selected_event_id and barcode_id == '':
+        # barcode_id is cleared after processing, so get it from POST
+        last_barcode_id = request.POST.get('barcode_id', '')
+        last_event_id = selected_event_id
+        if last_barcode_id and last_event_id:
+            try:
+                last_attendee = Attendee.objects.get(barcode_id=last_barcode_id)
+                last_event = Event.objects.get(id=last_event_id)
+                last_attendance = Attendance.objects.filter(attendee=last_attendee, event=last_event).first()
+                if last_attendance:
+                    # Remove if already in the list, then insert at top
+                    recent_attendance = [a for a in recent_attendance if a.id != last_attendance.id]
+                    recent_attendance = [last_attendance] + list(recent_attendance)
+                    recent_attendance = recent_attendance[:10]
+            except Exception:
+                pass
+
     return render(request, 'barcode_scanner.html', {
         'events': events,
         'success_message': success_message,
         'error_message': error_message,
         'selected_event_id': selected_event_id,
         'barcode_id': barcode_id,
-        'action': action
+        'action': action,
+        'recent_attendance': recent_attendance,
     })
 
 def view_attendance_sheet(request):
