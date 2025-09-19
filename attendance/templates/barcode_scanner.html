@@ -132,20 +132,7 @@
     color: #888;
 }
 .temp-submit-btn {
-    background: #e6007a;
-    color: #fff;
-    border: none;
-    padding: 10px 26px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px #e6007a22;
-}
-.temp-submit-btn:hover {
-    background: #d1006f;
+    display: none;
 }
 @media (max-width: 900px) {
     .scanner-page-flex {
@@ -213,7 +200,7 @@
                 <div class="form-actions">
                     <a href="{% url 'index' %}" class="back-btn">&larr; Back</a>
                 </div>
-                <button type="submit" class="temp-submit-btn">TEMP SUBMIT</button>
+                {# <button type="submit" class="temp-submit-btn">TEMP SUBMIT</button> #}
             </form>
         </div>
     </div>
