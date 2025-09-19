@@ -307,7 +307,7 @@
                 <form method="post" action="{% url 'add_student' %}">
                     {% csrf_token %}
                     <div class="dashboard-form-row">
-                        <input type="number" name="barcode_id" placeholder="ID Number" required class="dashboard-input">
+                        <input type="text" name="barcode_id" placeholder="ID Number" required class="dashboard-input">
                         <input type="text" name="student_name" placeholder="Student Name" required pattern="^[A-Za-z\s]+$" title="Only letters and spaces allowed" class="dashboard-input">
                         <select name="college" required class="dashboard-select">
                             <option value="">Select College</option>
