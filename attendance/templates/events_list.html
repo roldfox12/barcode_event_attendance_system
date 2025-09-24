@@ -46,7 +46,9 @@
         {% for event in events %}
         <tr>
             <td style="padding:8px; border:1px solid #e6007a;">
-                <a href="{% url 'attendance_sheet' event.id %}" style="color:#e6007a; text-decoration:underline; font-weight:600;">{{ event.name }}</a>
+                <a href="{% url 'attendance_sheet' event.id %}" style="color:#e6007a; text-decoration:underline; font-weight:600;">
+                    {{ event.name }}
+                </a>
             </td>
             <td style="padding:8px; border:1px solid #e6007a;">
                 {% if event.college %}

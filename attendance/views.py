@@ -452,9 +452,6 @@ def edit_student(request, student_id):
             return redirect('students_list')
     return render(request, 'edit_student.html', {'student': student, 'colleges': colleges})
 
-    return render(request, 'edit_student.html', {'student': student})
-
-
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def edit_event(request, event_id):
@@ -561,8 +558,6 @@ def edit_attendance(request, attendance_id):
     # Always return a response for GET or any non-POST
     return render(request, 'edit_attendance.html', {'attendance': attendance})
 
-
-
 def add_college(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -650,37 +645,45 @@ def barcode_scanner(request):
             error_message = "ID is not registered."
         barcode_id = ''
 
-    # Update recent_attendance to use the latest of the four timestamps
+    # After processing POST, build a flat list of attendance actions
     from django.db.models.functions import Greatest
-    recent_attendance = Attendance.objects.annotate(
-        latest_time=Greatest(
-            F('sign_in_am'),
-            F('sign_out_am'),
-            F('sign_in_pm'),
-            F('sign_out_pm'),
-            output_field=DateTimeField()
-        )
-    ).filter(
+    attendance_qs = Attendance.objects.select_related('attendee', 'event').filter(
         Q(sign_in_am__isnull=False) | Q(sign_out_am__isnull=False) | Q(sign_in_pm__isnull=False) | Q(sign_out_pm__isnull=False)
-    ).order_by('-latest_time')[:10]
+    )
 
-    # Move the just-scanned attendance to the top if available
-    if request.method == 'POST' and selected_event_id and barcode_id == '':
-        # barcode_id is cleared after processing, so get it from POST
-        last_barcode_id = request.POST.get('barcode_id', '')
-        last_event_id = selected_event_id
-        if last_barcode_id and last_event_id:
-            try:
-                last_attendee = Attendee.objects.get(barcode_id=last_barcode_id)
-                last_event = Event.objects.get(id=last_event_id)
-                last_attendance = Attendance.objects.filter(attendee=last_attendee, event=last_event).first()
-                if last_attendance:
-                    # Remove if already in the list, then insert at top
-                    recent_attendance = [a for a in recent_attendance if a.id != last_attendance.id]
-                    recent_attendance = [last_attendance] + list(recent_attendance)
-                    recent_attendance = recent_attendance[:10]
-            except Exception:
-                pass
+    recent_logs = []
+    for att in attendance_qs:
+        if att.sign_in_am:
+            recent_logs.append({
+                'attendee': att.attendee,
+                'event': att.event,
+                'action': 'In AM',
+                'timestamp': att.sign_in_am,
+            })
+        if att.sign_out_am:
+            recent_logs.append({
+                'attendee': att.attendee,
+                'event': att.event,
+                'action': 'Out AM',
+                'timestamp': att.sign_out_am,
+            })
+        if att.sign_in_pm:
+            recent_logs.append({
+                'attendee': att.attendee,
+                'event': att.event,
+                'action': 'In PM',
+                'timestamp': att.sign_in_pm,
+            })
+        if att.sign_out_pm:
+            recent_logs.append({
+                'attendee': att.attendee,
+                'event': att.event,
+                'action': 'Out PM',
+                'timestamp': att.sign_out_pm,
+            })
+
+    # Sort all logs by timestamp descending and take the top 10
+    recent_logs = sorted(recent_logs, key=lambda x: x['timestamp'], reverse=True)[:10]
 
     return render(request, 'barcode_scanner.html', {
         'events': events,
@@ -689,7 +692,7 @@ def barcode_scanner(request):
         'selected_event_id': selected_event_id,
         'barcode_id': barcode_id,
         'action': action,
-        'recent_attendance': recent_attendance,
+        'recent_attendance': recent_logs,
     })
 
 def view_attendance_sheet(request):

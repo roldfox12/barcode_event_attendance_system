@@ -213,10 +213,7 @@
                 <span class="recent-log-name">{{ log.attendee.name }}</span>
                 <span class="recent-log-event">{{ log.event.name }}</span>
                 <span class="recent-log-time">
-                    {% if log.sign_in_am %}In AM: {{ log.sign_in_am|date:"M d, h:i A" }}<br>{% endif %}
-                    {% if log.sign_out_am %}Out AM: {{ log.sign_out_am|date:"M d, h:i A" }}<br>{% endif %}
-                    {% if log.sign_in_pm %}In PM: {{ log.sign_in_pm|date:"M d, h:i A" }}<br>{% endif %}
-                    {% if log.sign_out_pm %}Out PM: {{ log.sign_out_pm|date:"M d, h:i A" }}{% endif %}
+                    {{ log.action }}: {{ log.timestamp|date:"M d, h:i A" }}
                 </span>
             </li>
             {% empty %}
