@@ -49,7 +49,7 @@
         margin-bottom: 2px;
         letter-spacing: 0.2px;
     }
-    .edit-event-input {
+    .edit-event-input, .edit-event-textarea {
         width: 260px;
         padding: 11px 12px 11px 12px;
         padding-right: 28px;
@@ -62,7 +62,7 @@
         margin-right: auto;
         display: block;
     }
-    .edit-event-input:focus {
+    .edit-event-input:focus, .edit-event-textarea:focus {
         border: 1.5px solid #e6007a;
         outline: none;
         background: #fff0fa;
@@ -115,6 +115,10 @@
             <div class="edit-event-field">
                 <label for="date" class="edit-event-label">Event Date</label>
                 <input type="datetime-local" id="date" name="date" value="{{ event.date|date:'Y-m-d\\TH:i' }}" required class="edit-event-input">
+            </div>
+            <div class="edit-event-field">
+                <label for="description" class="edit-event-label">Description</label>
+                <textarea id="description" name="description" rows="4" class="edit-event-textarea">{{ event.description }}</textarea>
             </div>
         </div>
         <div class="edit-event-actions">

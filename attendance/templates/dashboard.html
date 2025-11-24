@@ -186,6 +186,9 @@
             <a href="{% url 'students_list' %}" class="sidebar-link"><i class="fa fa-users"></i> <span>View All Students</span></a>
             <a href="{% url 'events_list' %}" class="sidebar-link"><i class="fa fa-calendar"></i> <span>View All Events</span></a>
             <a href="{% url 'sbo_users_list' %}" class="sidebar-link"><i class="fa fa-user-tie"></i> <span>View SBO Officers</span></a>
+            {% if user.is_superuser %}
+            <a href="{% url 'archived_events_list' %}" class="sidebar-link"><i class="fa fa-archive"></i> <span>View Archived List</span></a>
+            {% endif %}
         </div>
         <div class="sidebar-footer">
             <form action="{% url 'logout' %}" method="post" style="margin:0;">
@@ -320,7 +323,6 @@
                 </form>
             </div>
     </div>
-    <!-- Removed event sheet select and button -->
     </main>
 </div>
 {% endblock %}

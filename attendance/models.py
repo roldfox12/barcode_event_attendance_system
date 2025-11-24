@@ -12,6 +12,8 @@ class Event(models.Model):
         null=True,      # Null means general event
         blank=True
     )
+    description = models.TextField(blank=True, null=True)  # <-- Ensure this line exists
+    archived = models.BooleanField(default=False)  # <-- Add this line
 
     def __str__(self):
         return self.name

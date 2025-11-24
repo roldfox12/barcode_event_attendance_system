@@ -1,0 +1,130 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+
+class Event(models.Model):
+    name = models.CharField(max_length=200)
+    date = models.DateTimeField()
+    college = models.ForeignKey(
+        'College',
+        on_delete=models.CASCADE,
+        null=True,      # Null means general event
+        blank=True
+    )
+    description = models.TextField(blank=True, null=True)  # <-- Ensure this line exists
+    archived = models.BooleanField(default=False)  # <-- Add this line
+
+    def __str__(self):
+        return self.name
+    
+class Attendee(models.Model):
+    barcode_id = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=200)
+    college = models.ForeignKey('College', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+    
+class Attendance(models.Model):
+    attendee = models.ForeignKey(Attendee, on_delete=models.CASCADE)
+    event= models.ForeignKey(Event, on_delete=models.CASCADE)
+    sign_in_am = models.DateTimeField(null=True, blank=True)
+    sign_out_am = models.DateTimeField(null=True, blank=True)
+    sign_in_pm = models.DateTimeField(null=True, blank=True)
+    sign_out_pm = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.attendee.name} - {self.event.name}"
+
+class College(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+
+class SBOProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    college = models.ForeignKey(College, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.college.name}"
+        
+{% extends 'base.html' %}
+{% block content %}
+<!-- ...existing code for styling and layout... -->
+
+<h2 style="text-align:center; color:#e6007a; margin-top:30px;">All Events</h2>
+<form method="get" style="text-align:center; margin-bottom:20px;">
+    <!-- ...existing search/filter form... -->
+</form>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>Event Name</th>
+            <th>College</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.name }}</td>
+            <td>{% if event.college %}{{ event.college.name }}{% else %}General Event{% endif %}</td>
+            <td>{{ event.date|date:"M d, Y h:i A" }}</td>
+            <td>
+                <a href="{% url 'edit_event' event.id %}" class="btn">Edit</a>
+                {% if user.is_superuser %}
+                    <form method="post" action="{% url 'archive_event' event.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background:#f7e6ff; color:#e6007a; border:1px solid #e6007a; margin-left:4px;">Archive</button>
+                    </form>
+                {% endif %}
+                <form method="post" action="{% url 'delete_event' event.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="margin-left:4px;">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No active events.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if user.is_superuser and events_archived %}
+    <h2 style="text-align:center; color:#e6007a; margin-top:40px;">Archived Events</h2>
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th>Event Name</th>
+                <th>College</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events_archived %}
+            <tr>
+                <td>{{ event.name }}</td>
+                <td>{% if event.college %}{{ event.college.name }}{% else %}General Event{% endif %}</td>
+                <td>{{ event.date|date:"M d, Y h:i A" }}</td>
+                <td>
+                    <form method="post" action="{% url 'unarchive_event' event.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background:#ffe0f0; color:#e6007a; border:1px solid #e6007a;">Unarchive</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No archived events.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<a href="{% url 'dashboard' %}" class="btn" style="float:right; margin-top:20px;">Back to Dashboard</a>
+{% endblock %}

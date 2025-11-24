@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+    <h2 style="margin: 0;">Archived Events</h2>
+</div>
+
+<!-- Search Form (optional, similar to events_list) -->
+<div style="margin-bottom: 20px; display: flex; gap: 8px; align-items: center;">
+    <form method="get" action="" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+        <select name="college" onchange="this.form.submit()" style="padding:8px; border-radius:6px; border:1px solid #e6007a;">
+            <option value="">All Colleges</option>
+            {% for college in colleges %}
+                <option value="{{ college.id }}" {% if college.id|stringformat:"s" == selected_college %}selected{% endif %}>
+                    {{ college.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <input type="text" name="q" placeholder="Search event name..." value="{{ request.GET.q|default_if_none:'' }}" style="padding:8px; border-radius:6px; border:1px solid #e6007a; width: 250px;">
+        <button type="submit" class="btn btn-primary">Search</button>
+        {% if request.GET.q %}
+        <a href="{% url 'archived_events_list' %}" class="btn btn-secondary" style="margin-left:8px;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<table style="width:100%; border-collapse:collapse; background:#fff;">
+    <thead>
+        <tr style="background:#ffe3f0;">
+            <th style="padding:8px; border:1px solid #e6007a;">Event Name</th>
+            <th style="padding:8px; border:1px solid #e6007a;">College</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Date</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in events_archived %}
+        <tr>
+            <td style="padding:8px; border:1px solid #e6007a;">
+                <a href="{% url 'attendance_sheet' event.id %}" style="color:#e6007a; text-decoration:underline; font-weight:600;">
+                    {{ event.name }}
+                </a>
+            </td>
+            <td style="padding:8px; border:1px solid #e6007a;">
+                {% if event.college %}
+                    {{ event.college.name }}
+                {% else %}
+                    General Event
+                {% endif %}
+            </td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ event.date|date:"M j, Y h:i A" }}</td>
+            <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">
+                <form method="post" action="{% url 'unarchive_event' event.id %}" style="display:inline; margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary" style="background:#ffe0f0; color:#e6007a; border:1px solid #e6007a;">Unarchive</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="padding:8px; border:1px solid #e6007a;">No archived events found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'dashboard' %}" style="position:fixed; bottom:30px; right:30px; z-index:1000;">
+    <button type="button" class="btn btn-primary" style="padding:12px 24px; border-radius:50px; box-shadow:0 2px 8px #e6007a33; font-size:1.1rem; font-weight:600;">
+        Back to Dashboard
+    </button>
+</a>
+{% endblock %}
