@@ -904,6 +904,10 @@ def unarchive_event(request, event_id):
     event.archived = False
     event.save(update_fields=['archived'])
     messages.success(request, "Event unarchived successfully.")
+    # Stay on archived events page if coming from there
+    referer = request.META.get('HTTP_REFERER', '')
+    if 'archived_events' in referer:
+        return redirect('archived_events_list')
     return redirect('events_list')
 
 @login_required
