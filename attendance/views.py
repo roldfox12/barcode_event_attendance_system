@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 import attendance
 from .models import Event, Attendee, Attendance, College, SBOProfile
 from .forms import AddSBOUserForm
@@ -14,6 +14,9 @@ from django.db.models.functions import Greatest
 from django.contrib.auth.models import User
 import datetime
 from django.core.exceptions import FieldDoesNotExist
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -928,6 +931,67 @@ def archived_events_list(request):
         'colleges': colleges,
         'selected_college': selected_college,
     })
+
+@login_required
+def student_attendance_detail(request, student_id):
+    """
+    View to show all attendance records for a specific student.
+    """
+    student = get_object_or_404(Attendee, id=student_id)
+    attendances = Attendance.objects.filter(attendee=student).select_related('event').order_by('-event__date')
+    return render(request, 'student_attendance_detail.html', {
+        'student': student,
+        'attendances': attendances,
+    })
+
+@login_required
+def print_student_attendance_pdf(request, student_id):
+    """
+    Generate a PDF of all attendance records for a specific student.
+    """
+    student = get_object_or_404(Attendee, id=student_id)
+    attendances = Attendance.objects.filter(attendee=student).select_related('event').order_by('-event__date')
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Title
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(50, height - 50, f"Attendance Report for {student.name} ({student.barcode_id})")
+    p.setFont("Helvetica", 12)
+    p.drawString(50, height - 70, f"College: {student.college.name if student.college else '-'}")
+
+    # Table headers
+    y = height - 100
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(50, y, "Event")
+    p.drawString(200, y, "Date")
+    p.drawString(300, y, "In AM")
+    p.drawString(360, y, "Out AM")
+    p.drawString(430, y, "In PM")
+    p.drawString(490, y, "Out PM")
+    y -= 18
+    p.setFont("Helvetica", 10)
+
+    for att in attendances:
+        if y < 60:
+            p.showPage()
+            y = height - 50
+        p.drawString(50, y, att.event.name)
+        p.drawString(200, y, att.event.date.strftime("%Y-%m-%d %H:%M") if att.event.date else "-")
+        p.drawString(300, y, att.sign_in_am.strftime("%H:%M") if att.sign_in_am else "-")
+        p.drawString(360, y, att.sign_out_am.strftime("%H:%M") if att.sign_out_am else "-")
+        p.drawString(430, y, att.sign_in_pm.strftime("%H:%M") if att.sign_in_pm else "-")
+        p.drawString(490, y, att.sign_out_pm.strftime("%H:%M") if att.sign_out_pm else "-")
+        y -= 16
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    filename = f"{student.name}_attendance.pdf".replace(" ", "_")
+    # Open in browser, not as download
+    return FileResponse(buffer, as_attachment=False, filename=filename)
 
 
 

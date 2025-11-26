@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 style="margin-bottom: 16px;">Attendance for {{ student.name }} ({{ student.barcode_id }})</h2>
+<p><strong>College:</strong> {{ student.college.name }}</p>
+
+<table style="width:100%; border-collapse:collapse; background:#fff; margin-top: 18px;">
+    <thead>
+        <tr style="background:#ffe3f0;">
+            <th style="padding:8px; border:1px solid #e6007a;">Event</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Date</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Sign In (AM)</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Sign Out (AM)</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Sign In (PM)</th>
+            <th style="padding:8px; border:1px solid #e6007a;">Sign Out (PM)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for att in attendances %}
+        <tr>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.event.name }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.event.date|date:"Y-m-d H:i" }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.sign_in_am|default:"-" }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.sign_out_am|default:"-" }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.sign_in_pm|default:"-" }}</td>
+            <td style="padding:8px; border:1px solid #e6007a;">{{ att.sign_out_pm|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="padding:12px; text-align:center; color:#888;">No attendance records found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="display: flex; gap: 12px; margin-top:24px;">
+    <a href="{% url 'students_list' %}">
+        <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:10px 22px; border-radius:50px; cursor:pointer; font-size:1rem; font-weight:600;">
+            Back to Students List
+        </button>
+    </a>
+    <a href="{% url 'print_student_attendance_pdf' student.id %}" target="_blank" rel="noopener noreferrer">
+        <button type="button" style="background:#e6007a; color:#fff; border:2px solid #e6007a; padding:10px 22px; border-radius:50px; cursor:pointer; font-size:1rem; font-weight:600;">
+            Open PDF
+        </button>
+    </a>
+</div>
+{% endblock %}

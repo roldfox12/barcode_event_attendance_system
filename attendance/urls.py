@@ -56,4 +56,8 @@ urlpatterns = [
 
     # Archived events
     path('archived_events/', views.archived_events_list, name='archived_events_list'),
+
+    # Student attendance detail
+    path('students/<int:student_id>/attendance/', views.student_attendance_detail, name='student_attendance_detail'),
+    path('students/<int:student_id>/attendance/pdf/', views.print_student_attendance_pdf, name='print_student_attendance_pdf'),
 ]

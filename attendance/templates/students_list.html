@@ -48,7 +48,11 @@
         <!-- Example for students_list.html -->
 <tr>
     <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">{{ student.barcode_id }}</td>
-    <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">{{ student.name }}</td>
+    <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">
+        <a href="{% url 'student_attendance_detail' student.id %}" style="color:#e6007a; text-decoration:underline;">
+            {{ student.name }}
+        </a>
+    </td>
     <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">{{ student.college.name }}</td>
     <td style="padding:8px; border:1px solid #e6007a; vertical-align: middle;">
         <div style="display: flex; gap: 10px; align-items: center;">
